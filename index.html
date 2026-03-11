@@ -521,27 +521,38 @@
             showSuccess('Sample data loaded');
         }
 
-        // Load from Google Sheet with reliable proxy
-        async function loadSheetData() {
-            const sheetUrl = document.getElementById('sheetUrl').value;
-            
-            if (!sheetUrl) {
-                useSampleData();
-                return;
-            }
+        // Load from Google Sheet with proxy rotation - THIS WORKED BEFORE
+async function loadSheetData() {
+    const sheetUrl = document.getElementById('sheetUrl').value;
+    
+    if (!sheetUrl) {
+        useSampleData();
+        return;
+    }
 
+    try {
+        document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
+        
+        // Add cache-busting parameter to URL
+        const cacheBuster = '&_=' + new Date().getTime();
+        const urlWithCache = sheetUrl + cacheBuster;
+        
+        // List of CORS proxies that worked before
+        const proxies = [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://thingproxy.freeboard.io/fetch/'
+        ];
+        
+        let csvText = null;
+        let lastError = null;
+        
+        // Try each proxy until one works
+        for (const proxy of proxies) {
             try {
-                document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
-                
-                // Use a reliable proxy
-                const proxy = 'https://api.codetabs.com/v1/proxy?quest=';
-                
-                // Add cache-busting parameter to URL
-                const cacheBuster = '&_=' + new Date().getTime();
-                const urlWithCache = sheetUrl + cacheBuster;
                 const proxyUrl = proxy + encodeURIComponent(urlWithCache);
-                
-                console.log('Fetching from proxy:', proxyUrl);
+                console.log('Trying proxy:', proxy);
                 
                 const response = await fetch(proxyUrl, {
                     method: 'GET',
@@ -550,53 +561,64 @@
                     },
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (response.ok) {
+                    csvText = await response.text();
+                    console.log('Success with proxy:', proxy);
+                    break;
+                } else {
+                    console.log('Proxy responded with status:', response.status);
                 }
-                
-                const csvText = await response.text();
-                console.log('Data received, length:', csvText.length);
-                
-                // Parse CSV
-                const rows = csvText.split('\n').filter(row => row.trim() !== '');
-                console.log('Total rows:', rows.length);
-                
-                if (rows.length < 2) {
-                    throw new Error('Not enough rows in CSV');
-                }
-                
-                // Get the data row (second row)
-                const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
-                console.log('Data row:', dataRow);
-                
-                // SAFELY map to your KPI structure with fallbacks
-                currentData = {
-                    AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
-                    IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
-                    QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
-                    Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
-                    RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
-                    FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
-                    Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
-                    MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
-                    ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
-                };
-                
-                console.log('Mapped data:', currentData);
-                
-                updateDashboard();
-                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
-                showSuccess('Data loaded successfully!');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
-                showError(`Error: ${error.message}. Using sample data.`);
-                useSampleData();
+            } catch (e) {
+                lastError = e;
+                console.log('Proxy failed:', proxy, e.message);
+                continue;
             }
         }
-
-        // Calculate performance based on KPI type
+        
+        if (!csvText) {
+            throw new Error('All proxies failed. Please try again.');
+        }
+        
+        // Parse CSV
+        const rows = csvText.split('\n').filter(row => row.trim() !== '');
+        console.log('Total rows:', rows.length);
+        
+        if (rows.length < 2) {
+            throw new Error('Not enough rows in CSV');
+        }
+        
+        // Get the data row (second row)
+        const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
+        console.log('Data row:', dataRow);
+        
+        // SAFELY map to your KPI structure with fallbacks
+        currentData = {
+            AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
+            IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
+            QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
+            Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
+            RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
+            FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
+            Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
+            MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
+            ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
+        };
+        
+        console.log('Mapped data:', currentData);
+        
+        updateDashboard();
+        document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+        showSuccess('Data loaded successfully!');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+        showError(`Error: ${error.message}. Using sample data.`);
+        useSampleData();
+    }
+}
+       
+ // Calculate performance based on KPI type
         function calculatePerformance(actual, target, type) {
             switch(type) {
                 case 'lower-is-better':
