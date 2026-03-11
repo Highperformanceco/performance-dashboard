@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Performance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .sheet-url {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .sheet-url input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .last-updated {
+            margin-top: 10px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card.ztp {
+            border-left: 4px solid #dc3545;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .kpi-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .kpi-weight {
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .kpi-values {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .actual {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .target {
+            color: #999;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .kpi-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status.good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.bad {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .gap {
+            font-weight: 600;
+        }
+
+        .gap.positive {
+            color: #dc3545;
+        }
+
+        .gap.negative {
+            color: #28a745;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .summary-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .priority-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .priority-card h3, .priority-card .summary-value {
+            color: white;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ztp-row {
+            background: #fff5f5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 KPI Performance Dashboard</h1>
+            <p>Paste your Google Sheet URL below - only one sheet needed!</p>
+            
+            <div class="sheet-url">
+                <input type="text" id="sheetUrl" placeholder="<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Performance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .sheet-url {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .sheet-url input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .last-updated {
+            margin-top: 10px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card.ztp {
+            border-left: 4px solid #dc3545;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .kpi-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .kpi-weight {
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .kpi-values {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .actual {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .target {
+            color: #999;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .kpi-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status.good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.bad {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .gap {
+            font-weight: 600;
+        }
+
+        .gap.positive {
+            color: #dc3545;
+        }
+
+        .gap.negative {
+            color: #28a745;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .summary-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .priority-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .priority-card h3, .priority-card .summary-value {
+            color: white;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ztp-row {
+            background: #fff5f5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 KPI Performance Dashboard</h1>
+            <p>Paste your Google Sheet URL below - only one sheet needed!</p>
+            
+            <div class="sheet-url">
+                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTJqMJ6nPS9Boq3fH0Soy8SIleoLr3gJO7G0FxnTeu2O37AaYLSWoOxC4AQrcycdAWjJSFFgh4_uHvl/pubhtml" value="">
+                <button class="btn" onclick="loadSheetData()">Load Data</button>
+                <button class="btn" onclick="useSampleData()" style="background: #6c757d;">Use Sample</button>
+            </div>
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Overall Performance</h3>
+                <div class="summary-value" id="overallPerf">0%</div>
+                <div class="progress-bar" style="margin-top: 10px;">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <h3>Total Score</h3>
+                <div class="summary-value" id="totalScore">0</div>
+                <div>out of <span id="totalTarget">100</span></div>
+            </div>
+            <div class="summary-card">
+                <h3>KPIs on Track</h3>
+                <div class="summary-value" id="onTrackCount">0/9</div>
+                <div><span id="behindCount">0</span> need attention</div>
+            </div>
+            <div class="summary-card priority-card">
+                <h3>🎯 Priority</h3>
+                <div class="summary-value" id="priorityKPI">-</div>
+                <div id="priorityDetail">all good!</div>
+            </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid" id="kpiGrid">
+            <!-- Will be populated -->
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;">📋 Detailed Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>KPI</th>
+                        <th>Actual</th>
+                        <th>Target</th>
+                        <th>Weight</th>
+                        <th>Gap</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Daily Need</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Will be populated -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Made with ❤️ for easy KPI tracking | Data from your Google Sheet</p>
+        </div>
+    </div>
+
+    <script>
+        // TARGETS AND WEIGHTS (built into the dashboard)
+        const KPI_CONFIG = {
+            AHT: { target: 240, weight: 15, unit: '' },
+            IC: { target: 90, weight: 10, unit: '%' },
+            QA: { target: 98, weight: 5, unit: '%' },
+            Gauge: { target: 95, weight: 25, unit: '%' },
+            RSAT: { target: 83, weight: 10, unit: '%' },
+            FCR: { target: 90, weight: 25, unit: '%' },
+            Cancellation: { target: 90, weight: 10, unit: '%' },
+            MU: { target: 95, weight: 10, unit: '%' },
+            ZTP: { target: 0, weight: 5, unit: '%' }
+        };
+
+        const KPI_NAMES = ['AHT', 'IC', 'QA', 'Gauge', 'RSAT', 'FCR', 'Cancellation', 'MU', 'ZTP'];
+        
+        // Sample data from your screenshot
+        const SAMPLE_DATA = {
+            AHT: 227,
+            IC: 52.11,
+            QA: 90.69,
+            Gauge: 98.26,
+            RSAT: 82.37,
+            FCR: 87.99,
+            Cancellation: 57.38,
+            MU: 96.43,
+            ZTP: 13
+        };
+
+        let currentData = { ...SAMPLE_DATA };
+        let remainingDays = 15; // Default
+
+        // Use sample data
+        function useSampleData() {
+            currentData = { ...SAMPLE_DATA };
+            updateDashboard();
+            document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
+        }
+
+        // Load from Google Sheet
+        async function loadSheetData() {
+            const sheetUrl = document.getElementById('sheetUrl').value;
+            
+            if (!sheetUrl) {
+                alert('Please paste your Google Sheet URL');
+                return;
+            }
+
+            try {
+                document.getElementById('lastUpdated').innerHTML = '🔄 Loading...';
+                
+                // Convert to CSV export URL
+                const csvUrl = sheetUrl.replace('/pubhtml', '/export?format=csv');
+                
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                
+                // Parse CSV
+                const rows = csvText.split('\n');
+                if (rows.length >= 2) {
+                    const dataRow = rows[1].split(',');
+                    
+                    // Map to our KPI structure (based on your column order)
+                    currentData = {
+                        AHT: parseFloat(dataRow[0]) || 227,
+                        IC: parseFloat(dataRow[1]) || 52.11,
+                        QA: parseFloat(dataRow[2]) || 90.69,
+                        Gauge: parseFloat(dataRow[3]) || 98.26,
+                        RSAT: parseFloat(dataRow[4]) || 82.37,
+                        FCR: parseFloat(dataRow[5]) || 87.99,
+                        Cancellation: parseFloat(dataRow[6]) || 57.38,
+                        MU: parseFloat(dataRow[7]) || 96.43,
+                        ZTP: parseFloat(dataRow[8]) || 13
+                    };
+                }
+                
+                updateDashboard();
+                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+                useSampleData();
+            }
+        }
+
+        // Update entire dashboard
+        function updateDashboard() {
+            let totalWeightedActual = 0;
+            let totalWeightedTarget = 0;
+            let onTrackCount = 0;
+            let behindCount = 0;
+            let maxGap = -Infinity;
+            let priorityKPI = '';
+            let priorityGap = 0;
+            
+            let kpiGridHtml = '';
+            let tableRows = '';
+
+            KPI_NAMES.forEach(kpi => {
+                const config = KPI_CONFIG[kpi];
+                const actual = currentData[kpi];
+                const target = config.target;
+                const weight = config.weight;
+                const isZTP = (kpi === 'ZTP');
+                
+                // Calculate metrics
+                let gap, status, statusClass, weightedActual, weightedTarget, dailyNeed;
+                
+                if (isZTP) {
+                    // ZTP special logic
+                    weightedTarget = target * (weight / 100); // 0
+                    gap = actual; // Gap is actual value
+                    
+                    if (actual === 0) {
+                        weightedActual = target * (weight / 100); // 0
+                        status = 'GOOD';
+                        statusClass = 'good';
+                        onTrackCount++;
+                    } else {
+                        weightedActual = 0;
+                        status = 'FAILED';
+                        statusClass = 'bad';
+                        behindCount++;
+                        
+                        if (actual > priorityGap) {
+                            priorityGap = actual;
+                            priorityKPI = kpi;
+                            maxGap = actual;
+                        }
+                    }
+                    
+                    dailyNeed = actual > 0 ? 'MUST BE 0%' : 'Maintain 0%';
+                } else {
+                    // Normal KPI
+                    weightedTarget = target * (weight / 100);
+                    weightedActual = actual * (weight / 100);
+                    gap = target - actual;
+                    
+                    if (actual >= target) {
+                        status = 'ON TRACK';
+                        statusClass = 'good';
+                        onTrackCount++;
+                    } else {
+                        status = 'BEHIND';
+                        statusClass = 'bad';
+                        behindCount++;
+                        
+                        if (gap > maxGap) {
+                            maxGap = gap;
+                            priorityKPI = kpi;
+                            priorityGap = gap;
+                        }
+                    }
+                    
+                    dailyNeed = gap > 0 ? (gap / remainingDays).toFixed(2) + '%/day' : 'On track';
+                }
+
+                totalWeightedActual += weightedActual;
+                totalWeightedTarget += weightedTarget;
+
+                // Gap display
+                const gapDisplay = isZTP ? 
+                    (actual > 0 ? `+${actual}%` : '0') :
+                    (gap > 0 ? `+${gap.toFixed(2)}` : (gap < 0 ? gap.toFixed(2) : '0'));
+                
+                const gapClass = gap > 0 ? 'positive' : (gap < 0 ? 'negative' : '');
+
+                // Progress percentage
+                const progressPercent = isZTP ?
+                    (actual === 0 ? 100 : 0) :
+                    Math.min(100, (actual / target * 100));
+
+                // KPI Card
+                kpiGridHtml += `
+                    <div class="kpi-card ${isZTP ? 'ztp' : ''}">
+                        <div class="kpi-header">
+                            <span class="kpi-name">${kpi}</span>
+                            <span class="kpi-weight">${weight}%</span>
+                        </div>
+                        <div class="kpi-values">
+                            <div>
+                                <div class="actual">${actual}${config.unit}</div>
+                                <div class="target">Target: ${target}${config.unit}</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="kpi-footer">
+                            <span class="status ${statusClass}">${status}</span>
+                            <span class="gap ${gapClass}">${gapDisplay}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Table Row
+                const rowClass = isZTP && actual > 0 ? 'ztp-row' : '';
+                tableRows += `
+                    <tr class="${rowClass}">
+                        <td><strong>${kpi}</strong></td>
+                        <td>${actual}${config.unit}</td>
+                        <td>${target}${config.unit}</td>
+                        <td>${weight}%</td>
+                        <td class="gap ${gapClass}">${gapDisplay}</td>
+                        <td><span class="status ${statusClass}" style="display: inline-block;">${status}</span></td>
+                        <td>${weightedActual.toFixed(2)}</td>
+                        <td>${dailyNeed}</td>
+                    </tr>
+                `;
+            });
+
+            // Update DOM
+            document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
+            document.getElementById('tableBody').innerHTML = tableRows;
+            
+            // Update summaries
+            const perfPercent = (totalWeightedActual / totalWeightedTarget * 100).toFixed(1);
+            document.getElementById('overallPerf').innerHTML = perfPercent + '%';
+            document.getElementById('progressFill').style.width = perfPercent + '%';
+            document.getElementById('totalScore').innerHTML = totalWeightedActual.toFixed(2);
+            document.getElementById('totalTarget').innerHTML = totalWeightedTarget.toFixed(2);
+            document.getElementById('onTrackCount').innerHTML = `${onTrackCount}/9`;
+            document.getElementById('behindCount').innerHTML = behindCount;
+            
+            if (priorityKPI) {
+                document.getElementById('priorityKPI').innerHTML = priorityKPI;
+                document.getElementById('priorityDetail').innerHTML = `needs ${priorityGap.toFixed(2)}% improvement`;
+            } else {
+                document.getElementById('priorityKPI').innerHTML = 'All Good!';
+                document.getElementById('priorityDetail').innerHTML = 'no gaps detected';
+            }
+        }
+
+        // Initialize with sample data
+        window.onload = function() {
+            useSampleData();
+        };
+    </script>
+</body>
+</html>" value="">
+                <button class="btn" onclick="loadSheetData()">Load Data</button>
+                <button class="btn" onclick="useSampleData()" style="background: #6c757d;">Use Sample</button>
+            </div>
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Overall Performance</h3>
+                <div class="summary-value" id="overallPerf">0%</div>
+                <div class="progress-bar" style="margin-top: 10px;">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <h3>Total Score</h3>
+                <div class="summary-value" id="totalScore">0</div>
+                <div>out of <span id="totalTarget">100</span></div>
+            </div>
+            <div class="summary-card">
+                <h3>KPIs on Track</h3>
+                <div class="summary-value" id="onTrackCount">0/9</div>
+                <div><span id="behindCount">0</span> need attention</div>
+            </div>
+            <div class="summary-card priority-card">
+                <h3>🎯 Priority</h3>
+                <div class="summary-value" id="priorityKPI">-</div>
+                <div id="priorityDetail">all good!</div>
+            </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid" id="kpiGrid">
+            <!-- Will be populated -->
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;">📋 Detailed Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>KPI</th>
+                        <th>Actual</th>
+                        <th>Target</th>
+                        <th>Weight</th>
+                        <th>Gap</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Daily Need</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Will be populated -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Made with ❤️ for easy KPI tracking | Data from your Google Sheet</p>
+        </div>
+    </div>
+
+    <script>
+        // TARGETS AND WEIGHTS (built into the dashboard)
+        const KPI_CONFIG = {
+            AHT: { target: 240, weight: 15, unit: '' },
+            IC: { target: 90, weight: 10, unit: '%' },
+            QA: { target: 98, weight: 5, unit: '%' },
+            Gauge: { target: 95, weight: 25, unit: '%' },
+            RSAT: { target: 83, weight: 10, unit: '%' },
+            FCR: { target: 90, weight: 25, unit: '%' },
+            Cancellation: { target: 90, weight: 10, unit: '%' },
+            MU: { target: 95, weight: 10, unit: '%' },
+            ZTP: { target: 0, weight: 5, unit: '%' }
+        };
+
+        const KPI_NAMES = ['AHT', 'IC', 'QA', 'Gauge', 'RSAT', 'FCR', 'Cancellation', 'MU', 'ZTP'];
+        
+        // Sample data from your screenshot
+        const SAMPLE_DATA = {
+            AHT: 227,
+            IC: 52.11,
+            QA: 90.69,
+            Gauge: 98.26,
+            RSAT: 82.37,
+            FCR: 87.99,
+            Cancellation: 57.38,
+            MU: 96.43,
+            ZTP: 13
+        };
+
+        let currentData = { ...SAMPLE_DATA };
+        let remainingDays = 15; // Default
+
+        // Use sample data
+        function useSampleData() {
+            currentData = { ...SAMPLE_DATA };
+            updateDashboard();
+            document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
+        }
+
+        // Load from Google Sheet
+        async function loadSheetData() {
+            const sheetUrl = document.getElementById('sheetUrl').value;
+            
+            if (!sheetUrl) {
+                alert('Please paste your Google Sheet URL');
+                return;
+            }
+
+            try {
+                document.getElementById('lastUpdated').innerHTML = '🔄 Loading...';
+                
+                // Convert to CSV export URL
+                const csvUrl = sheetUrl.replace('/pubhtml', '/export?format=csv');
+                
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                
+                // Parse CSV
+                const rows = csvText.split('\n');
+                if (rows.length >= 2) {
+                    const dataRow = rows[1].split(',');
+                    
+                    // Map to our KPI structure (based on your column order)
+                    currentData = {
+                        AHT: parseFloat(dataRow[0]) || 227,
+                        IC: parseFloat(dataRow[1]) || 52.11,
+                        QA: parseFloat(dataRow[2]) || 90.69,
+                        Gauge: parseFloat(dataRow[3]) || 98.26,
+                        RSAT: parseFloat(dataRow[4]) || 82.37,
+                        FCR: parseFloat(dataRow[5]) || 87.99,
+                        Cancellation: parseFloat(dataRow[6]) || 57.38,
+                        MU: parseFloat(dataRow[7]) || 96.43,
+                        ZTP: parseFloat(dataRow[8]) || 13
+                    };
+                }
+                
+                updateDashboard();
+                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+                useSampleData();
+            }
+        }
+
+        // Update entire dashboard
+        function updateDashboard() {
+            let totalWeightedActual = 0;
+            let totalWeightedTarget = 0;
+            let onTrackCount = 0;
+            let behindCount = 0;
+            let maxGap = -Infinity;
+            let priorityKPI = '';
+            let priorityGap = 0;
+            
+            let kpiGridHtml = '';
+            let tableRows = '';
+
+            KPI_NAMES.forEach(kpi => {
+                const config = KPI_CONFIG[kpi];
+                const actual = currentData[kpi];
+                const target = config.target;
+                const weight = config.weight;
+                const isZTP = (kpi === 'ZTP');
+                
+                // Calculate metrics
+                let gap, status, statusClass, weightedActual, weightedTarget, dailyNeed;
+                
+                if (isZTP) {
+                    // ZTP special logic
+                    weightedTarget = target * (weight / 100); // 0
+                    gap = actual; // Gap is actual value
+                    
+                    if (actual === 0) {
+                        weightedActual = target * (weight / 100); // 0
+                        status = 'GOOD';
+                        statusClass = 'good';
+                        onTrackCount++;
+                    } else {
+                        weightedActual = 0;
+                        status = 'FAILED';
+                        statusClass = 'bad';
+                        behindCount++;
+                        
+                        if (actual > priorityGap) {
+                            priorityGap = actual;
+                            priorityKPI = kpi;
+                            maxGap = actual;
+                        }
+                    }
+                    
+                    dailyNeed = actual > 0 ? 'MUST BE 0%' : 'Maintain 0%';
+                } else {
+                    // Normal KPI
+                    weightedTarget = target * (weight / 100);
+                    weightedActual = actual * (weight / 100);
+                    gap = target - actual;
+                    
+                    if (actual >= target) {
+                        status = 'ON TRACK';
+                        statusClass = 'good';
+                        onTrackCount++;
+                    } else {
+                        status = 'BEHIND';
+                        statusClass = 'bad';
+                        behindCount++;
+                        
+                        if (gap > maxGap) {
+                            maxGap = gap;
+                            priorityKPI = kpi;
+                            priorityGap = gap;
+                        }
+                    }
+                    
+                    dailyNeed = gap > 0 ? (gap / remainingDays).toFixed(2) + '%/day' : 'On track';
+                }
+
+                totalWeightedActual += weightedActual;
+                totalWeightedTarget += weightedTarget;
+
+                // Gap display
+                const gapDisplay = isZTP ? 
+                    (actual > 0 ? `+${actual}%` : '0') :
+                    (gap > 0 ? `+${gap.toFixed(2)}` : (gap < 0 ? gap.toFixed(2) : '0'));
+                
+                const gapClass = gap > 0 ? 'positive' : (gap < 0 ? 'negative' : '');
+
+                // Progress percentage
+                const progressPercent = isZTP ?
+                    (actual === 0 ? 100 : 0) :
+                    Math.min(100, (actual / target * 100));
+
+                // KPI Card
+                kpiGridHtml += `
+                    <div class="kpi-card ${isZTP ? 'ztp' : ''}">
+                        <div class="kpi-header">
+                            <span class="kpi-name">${kpi}</span>
+                            <span class="kpi-weight">${weight}%</span>
+                        </div>
+                        <div class="kpi-values">
+                            <div>
+                                <div class="actual">${actual}${config.unit}</div>
+                                <div class="target">Target: ${target}${config.unit}</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="kpi-footer">
+                            <span class="status ${statusClass}">${status}</span>
+                            <span class="gap ${gapClass}">${gapDisplay}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Table Row
+                const rowClass = isZTP && actual > 0 ? 'ztp-row' : '';
+                tableRows += `
+                    <tr class="${rowClass}">
+                        <td><strong>${kpi}</strong></td>
+                        <td>${actual}${config.unit}</td>
+                        <td>${target}${config.unit}</td>
+                        <td>${weight}%</td>
+                        <td class="gap ${gapClass}">${gapDisplay}</td>
+                        <td><span class="status ${statusClass}" style="display: inline-block;">${status}</span></td>
+                        <td>${weightedActual.toFixed(2)}</td>
+                        <td>${dailyNeed}</td>
+                    </tr>
+                `;
+            });
+
+            // Update DOM
+            document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
+            document.getElementById('tableBody').innerHTML = tableRows;
+            
+            // Update summaries
+            const perfPercent = (totalWeightedActual / totalWeightedTarget * 100).toFixed(1);
+            document.getElementById('overallPerf').innerHTML = perfPercent + '%';
+            document.getElementById('progressFill').style.width = perfPercent + '%';
+            document.getElementById('totalScore').innerHTML = totalWeightedActual.toFixed(2);
+            document.getElementById('totalTarget').innerHTML = totalWeightedTarget.toFixed(2);
+            document.getElementById('onTrackCount').innerHTML = `${onTrackCount}/9`;
+            document.getElementById('behindCount').innerHTML = behindCount;
+            
+            if (priorityKPI) {
+                document.getElementById('priorityKPI').innerHTML = priorityKPI;
+                document.getElementById('priorityDetail').innerHTML = `needs ${priorityGap.toFixed(2)}% improvement`;
+            } else {
+                document.getElementById('priorityKPI').innerHTML = 'All Good!';
+                document.getElementById('priorityDetail').innerHTML = 'no gaps detected';
+            }
+        }
+
+        // Initialize with sample data
+        window.onload = function() {
+            useSampleData();
+        };
+    </script>
+</body>
+</html>
