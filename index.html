@@ -521,7 +521,7 @@
             showSuccess('Sample data loaded');
         }
 
-        // Load from Google Sheet with proxy rotation and cache busting
+        // Load from Google Sheet with reliable proxy
         async function loadSheetData() {
             const sheetUrl = document.getElementById('sheetUrl').value;
             
@@ -533,52 +533,29 @@
             try {
                 document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
                 
+                // Use a reliable proxy
+                const proxy = 'https://api.codetabs.com/v1/proxy?quest=';
+                
                 // Add cache-busting parameter to URL
                 const cacheBuster = '&_=' + new Date().getTime();
                 const urlWithCache = sheetUrl + cacheBuster;
+                const proxyUrl = proxy + encodeURIComponent(urlWithCache);
                 
-                // List of reliable CORS proxies
-                const proxies = [
-                    'https://api.allorigins.win/raw?url=',
-                    'https://corsproxy.io/?',
-                    'https://thingproxy.freeboard.io/fetch/',
-                    'https://cors-anywhere.herokuapp.com/'
-                ];
+                console.log('Fetching from proxy:', proxyUrl);
                 
-                let csvText = null;
-                let lastError = null;
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/csv',
+                    },
+                });
                 
-                // Try each proxy until one works
-                for (const proxy of proxies) {
-                    try {
-                        const proxyUrl = proxy + encodeURIComponent(urlWithCache);
-                        console.log('Trying proxy:', proxy);
-                        
-                        const response = await fetch(proxyUrl, {
-                            method: 'GET',
-                            headers: {
-                                'Accept': 'text/csv',
-                                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                'Pragma': 'no-cache',
-                                'Expires': '0'
-                            },
-                        });
-                        
-                        if (response.ok) {
-                            csvText = await response.text();
-                            console.log('Success with proxy:', proxy);
-                            break;
-                        }
-                    } catch (e) {
-                        lastError = e;
-                        console.log('Proxy failed:', proxy, e.message);
-                        continue;
-                    }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                if (!csvText) {
-                    throw new Error('All proxies failed');
-                }
+                const csvText = await response.text();
+                console.log('Data received, length:', csvText.length);
                 
                 // Parse CSV
                 const rows = csvText.split('\n').filter(row => row.trim() !== '');
