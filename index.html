@@ -80,6 +80,14 @@
             background: #38a169;
         }
 
+        .btn-refresh {
+            background: #3498db;
+        }
+
+        .btn-refresh:hover {
+            background: #2980b9;
+        }
+
         .error-message {
             background: #f8d7da;
             color: #721c24;
@@ -358,6 +366,7 @@
                     <option value="15">15 minutes</option>
                     <option value="30">30 minutes</option>
                 </select>
+                <button class="btn btn-refresh" onclick="loadSheetData()" style="margin-left: 10px;">🔄 Refresh Now</button>
                 <span id="countdown" style="margin-left: auto;"></span>
             </div>
             
@@ -515,7 +524,7 @@
             showSuccess('Sample data loaded');
         }
 
-        // Load from Google Sheet with proxy rotation
+        // Load from Google Sheet with proxy rotation and cache busting
         async function loadSheetData() {
             const sheetUrl = document.getElementById('sheetUrl').value;
             
@@ -526,6 +535,10 @@
 
             try {
                 document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
+                
+                // Add cache-busting parameter to URL
+                const cacheBuster = '&_=' + new Date().getTime();
+                const urlWithCache = sheetUrl + cacheBuster;
                 
                 // List of reliable CORS proxies
                 const proxies = [
@@ -541,13 +554,17 @@
                 // Try each proxy until one works
                 for (const proxy of proxies) {
                     try {
-                        const proxyUrl = proxy + encodeURIComponent(sheetUrl);
+                        const proxyUrl = proxy + encodeURIComponent(urlWithCache);
                         console.log('Trying proxy:', proxy);
+                        console.log('With cache buster:', new Date().getTime());
                         
                         const response = await fetch(proxyUrl, {
                             method: 'GET',
                             headers: {
                                 'Accept': 'text/csv',
+                                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                'Pragma': 'no-cache',
+                                'Expires': '0'
                             },
                         });
                         
