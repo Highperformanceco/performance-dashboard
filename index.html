@@ -45,10 +45,12 @@
             margin-top: 20px;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .sheet-url input {
             flex: 1;
+            min-width: 300px;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
@@ -102,6 +104,7 @@
             align-items: center;
             gap: 10px;
             color: #666;
+            flex-wrap: wrap;
         }
 
         .auto-refresh select {
@@ -131,6 +134,11 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
         }
 
         .kpi-card.ztp {
@@ -333,7 +341,7 @@
             <p>Your sheet link is saved automatically - paste once and it remembers!</p>
             
             <div class="sheet-url">
-                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo0NdiOJQOm3adKz8fPwp77X8cdfPJRfHP7RcZN7adiAFQqoJeMcAU7QOXGvMJwOkbDeAwZuIiiStm/pub?output=csv" value="">
+                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo0NdiOJQOm3adKz8fPwp77X8cdfPJRfHP7RcZN7adiAFQqoJeMcAU7QOXGvMJwOkbDeAwZuIiiStm/pub?output=csv">
                 <button class="btn btn-save" onclick="saveAndLoad()">Save & Load</button>
                 <button class="btn" onclick="useSampleData()" style="background: #6c757d;">Use Sample</button>
             </div>
@@ -422,8 +430,7 @@
                 target: 240, 
                 weight: 15, 
                 unit: '', 
-                type: 'lower-is-better',  // AHT: below target is good
-                inverse: true 
+                type: 'lower-is-better'
             },
             IC: { target: 90, weight: 10, unit: '%', type: 'higher-is-better' },
             QA: { target: 98, weight: 5, unit: '%', type: 'higher-is-better' },
@@ -437,7 +444,7 @@
 
         const KPI_NAMES = ['AHT', 'IC', 'QA', 'Gauge', 'RSAT', 'FCR', 'Cancellation', 'MU', 'ZTP'];
         
-        // Sample data from your screenshot
+        // Sample data 
         const SAMPLE_DATA = {
             AHT: 227,
             IC: 52.11,
@@ -520,7 +527,7 @@
             try {
                 document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
                 
-                // List of reliable CORS proxies (tries each one if previous fails)
+                // List of reliable CORS proxies
                 const proxies = [
                     'https://api.allorigins.win/raw?url=',
                     'https://corsproxy.io/?',
@@ -547,41 +554,46 @@
                         if (response.ok) {
                             csvText = await response.text();
                             console.log('Success with proxy:', proxy);
-                            break; // Exit loop if successful
+                            break;
                         }
                     } catch (e) {
                         lastError = e;
                         console.log('Proxy failed:', proxy, e.message);
-                        continue; // Try next proxy
+                        continue;
                     }
                 }
                 
                 if (!csvText) {
-                    throw new Error('All proxies failed. Last error: ' + (lastError ? lastError.message : 'unknown'));
+                    throw new Error('All proxies failed');
                 }
                 
                 // Parse CSV
-                const rows = csvText.split('\n').filter(row => row.trim());
+                const rows = csvText.split('\n').filter(row => row.trim() !== '');
+                console.log('Total rows:', rows.length);
+                
                 if (rows.length < 2) {
                     throw new Error('Not enough rows in CSV');
                 }
                 
-                // Parse the data row (second row)
+                // Get the data row (second row)
                 const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
                 console.log('Data row:', dataRow);
+                console.log('Data row length:', dataRow.length);
                 
-                // Map to your KPI structure (based on your headers)
+                // SAFELY map to your KPI structure with fallbacks
                 currentData = {
-                    AHT: parseFloat(dataRow[0]) || SAMPLE_DATA.AHT,
-                    IC: parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC,
-                    QA: parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA,
-                    Gauge: parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge,
-                    RSAT: parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT,
-                    FCR: parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR,
-                    Cancellation: parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation,
-                    MU: parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU,
-                    ZTP: parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP
+                    AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
+                    IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
+                    QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
+                    Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
+                    RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
+                    FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
+                    Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
+                    MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
+                    ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
                 };
+                
+                console.log('Mapped data:', currentData);
                 
                 updateDashboard();
                 document.getElementById('lastUpdated').innerHTML = `✅ Updated from Google Sheet: ${new Date().toLocaleString()}`;
@@ -650,21 +662,18 @@
         function calculatePerformance(actual, target, type) {
             switch(type) {
                 case 'lower-is-better':
-                    // For AHT: below target is good
                     return {
                         isGood: actual <= target,
-                        gap: actual - target,  // Positive means worse (above target)
-                        progress: Math.min(100, (target / Math.max(actual, 0.1)) * 100) // Inverse progress
+                        gap: actual - target,
+                        progress: Math.min(100, (target / Math.max(actual, 0.1)) * 100)
                     };
                 case 'zero-is-best':
-                    // For ZTP: 0 is perfect
                     return {
                         isGood: actual === 0,
-                        gap: actual, // Gap is the actual value
+                        gap: actual,
                         progress: actual === 0 ? 100 : 0
                     };
                 default:
-                    // Higher is better (normal KPIs)
                     return {
                         isGood: actual >= target,
                         gap: target - actual,
@@ -693,18 +702,16 @@
                 const weight = config.weight;
                 const type = config.type;
                 
-                // Calculate metrics based on KPI type
                 const perf = calculatePerformance(actual, target, type);
                 const isGood = perf.isGood;
                 const gap = perf.gap;
                 const progress = perf.progress;
                 
-                // Calculate weighted scores
                 let weightedTarget, weightedActual;
                 
                 if (type === 'zero-is-best') {
-                    weightedTarget = 0; // Target is 0
-                    weightedActual = isGood ? target * (weight / 100) : 0; // Full points only if 0
+                    weightedTarget = 0;
+                    weightedActual = isGood ? target * (weight / 100) : 0;
                 } else {
                     weightedTarget = target * (weight / 100);
                     weightedActual = actual * (weight / 100);
@@ -713,13 +720,10 @@
                 totalWeightedTarget += weightedTarget;
                 totalWeightedActual += weightedActual;
 
-                // Status and tracking
                 if (isGood) {
                     onTrackCount++;
                 } else {
                     behindCount++;
-                    
-                    // Track biggest gap for priority
                     const gapMagnitude = Math.abs(gap);
                     if (gapMagnitude > maxGap) {
                         maxGap = gapMagnitude;
@@ -728,7 +732,6 @@
                     }
                 }
 
-                // Status text and class
                 let status, statusClass;
                 if (type === 'zero-is-best') {
                     status = isGood ? 'GOOD (0%)' : 'FAILED';
@@ -741,7 +744,6 @@
                     statusClass = isGood ? 'good' : 'bad';
                 }
 
-                // Gap display
                 let gapDisplay, gapClass;
                 if (type === 'zero-is-best') {
                     gapDisplay = actual > 0 ? `+${actual}%` : '0';
@@ -754,7 +756,6 @@
                     gapClass = gap > 0 ? 'positive' : (gap < 0 ? 'negative' : '');
                 }
 
-                // Daily need (using 15 days as default)
                 let dailyNeed;
                 if (type === 'zero-is-best') {
                     dailyNeed = actual > 0 ? 'MUST BE 0%' : 'Maintain 0%';
@@ -764,7 +765,6 @@
                     dailyNeed = gap > 0 ? `${(gap/15).toFixed(2)}%/day` : 'On track';
                 }
 
-                // KPI Card
                 const cardClass = type === 'zero-is-best' ? 'ztp' : (type === 'lower-is-better' ? 'aht' : '');
                 kpiGridHtml += `
                     <div class="kpi-card ${cardClass}">
@@ -788,7 +788,6 @@
                     </div>
                 `;
 
-                // Table Row
                 const rowClass = type === 'zero-is-best' && !isGood ? 'ztp-row' : (type === 'lower-is-better' && !isGood ? 'aht-row' : '');
                 tableRows += `
                     <tr class="${rowClass}">
@@ -804,11 +803,9 @@
                 `;
             });
 
-            // Update DOM
             document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
             document.getElementById('tableBody').innerHTML = tableRows;
             
-            // Update summaries
             const perfPercent = totalWeightedTarget > 0 ? (totalWeightedActual / totalWeightedTarget * 100).toFixed(1) : '0';
             document.getElementById('overallPerf').innerHTML = perfPercent + '%';
             document.getElementById('progressFill').style.width = perfPercent + '%';
@@ -838,7 +835,6 @@
                 useSampleData();
             }
             
-            // Set up auto-refresh based on saved settings
             setAutoRefresh();
         };
     </script>
