@@ -82,10 +82,17 @@
 
         .btn-refresh {
             background: #3498db;
+            padding: 12px 24px;
         }
 
         .btn-refresh:hover {
             background: #2980b9;
+        }
+
+        .refresh-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
         }
 
         .error-message {
@@ -106,26 +113,11 @@
             display: none;
         }
 
-        .auto-refresh {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #666;
-            flex-wrap: wrap;
-        }
-
-        .auto-refresh select {
-            padding: 8px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.9em;
-        }
-
         .last-updated {
             margin-top: 10px;
             color: #999;
             font-size: 0.9em;
+            text-align: right;
         }
 
         .kpi-grid {
@@ -295,6 +287,7 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             overflow-x: auto;
+            margin-bottom: 20px;
         }
 
         table {
@@ -322,6 +315,27 @@
 
         .aht-row {
             background: #fef3c7;
+        }
+
+        .score-highlight {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .total-score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .total-score-card span {
+            font-size: 2.5em;
+            display: block;
         }
 
         .footer {
@@ -354,21 +368,12 @@
                 <button class="btn" onclick="useSampleData()" style="background: #6c757d;">Use Sample</button>
             </div>
             
+            <div class="refresh-container">
+                <button class="btn btn-refresh" onclick="loadSheetData()">🔄 Refresh Now</button>
+            </div>
+            
             <div id="errorMessage" class="error-message"></div>
             <div id="successMessage" class="success-message"></div>
-            
-            <div class="auto-refresh">
-                <span>🔄 Auto-refresh every:</span>
-                <select id="refreshInterval" onchange="setAutoRefresh()">
-                    <option value="0">Manual only</option>
-                    <option value="1">1 minute</option>
-                    <option value="5">5 minutes</option>
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                </select>
-                <button class="btn btn-refresh" onclick="loadSheetData()" style="margin-left: 10px;">🔄 Refresh Now</button>
-                <span id="countdown" style="margin-left: auto;"></span>
-            </div>
             
             <div class="last-updated" id="lastUpdated"></div>
         </div>
@@ -381,11 +386,6 @@
                 <div class="progress-bar" style="margin-top: 10px;">
                     <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                 </div>
-            </div>
-            <div class="summary-card">
-                <h3>Total Score</h3>
-                <div class="summary-value" id="totalScore">0</div>
-                <div>out of <span id="totalTarget">100</span></div>
             </div>
             <div class="summary-card">
                 <h3>KPIs on Track</h3>
@@ -416,7 +416,7 @@
                         <th>Weight</th>
                         <th>Gap</th>
                         <th>Status</th>
-                        <th>Score</th>
+                        <th>Score (out of weight)</th>
                         <th>Daily Need</th>
                     </tr>
                 </thead>
@@ -426,6 +426,11 @@
             </table>
         </div>
 
+        <!-- Total Score Card -->
+        <div class="total-score-card">
+            Total Score: <span id="totalScore">0.0</span> / 100
+        </div>
+
         <!-- Footer -->
         <div class="footer">
             <p>Made with ❤️ for easy KPI tracking | <a href="https://github.com/Highperformanceco/performance-dashboard" target="_blank">GitHub Repository</a></p>
@@ -433,7 +438,7 @@
     </div>
 
     <script>
-        // KPI CONFIGURATION with direction indicators
+        // KPI CONFIGURATION with direction indicators - CORRECTED WEIGHTS
         const KPI_CONFIG = {
             AHT: { 
                 target: 240, 
@@ -441,8 +446,8 @@
                 unit: '', 
                 type: 'lower-is-better'
             },
-            IC: { target: 98, weight: 10, unit: '%', type: 'higher-is-better' },
-            QA: { target: 90, weight: 10, unit: '%', type: 'higher-is-better' },
+            IC: { target: 90, weight: 10, unit: '%', type: 'higher-is-better' },
+            QA: { target: 98, weight: 10, unit: '%', type: 'higher-is-better' },
             Gauge: { target: 95, weight: 5, unit: '%', type: 'higher-is-better' },
             RSAT: { target: 83, weight: 25, unit: '%', type: 'higher-is-better' },
             FCR: { target: 90, weight: 10, unit: '%', type: 'higher-is-better' },
@@ -467,9 +472,6 @@
         };
 
         let currentData = { ...SAMPLE_DATA };
-        let refreshTimer = null;
-        let countdownTimer = null;
-        let secondsUntilRefresh = 0;
 
         // Show error message
         function showError(message) {
@@ -496,11 +498,6 @@
             const savedUrl = localStorage.getItem('sheetUrl');
             if (savedUrl) {
                 document.getElementById('sheetUrl').value = savedUrl;
-            }
-            
-            const savedInterval = localStorage.getItem('refreshInterval');
-            if (savedInterval) {
-                document.getElementById('refreshInterval').value = savedInterval;
             }
         }
 
@@ -556,7 +553,6 @@
                     try {
                         const proxyUrl = proxy + encodeURIComponent(urlWithCache);
                         console.log('Trying proxy:', proxy);
-                        console.log('With cache buster:', new Date().getTime());
                         
                         const response = await fetch(proxyUrl, {
                             method: 'GET',
@@ -595,7 +591,6 @@
                 // Get the data row (second row)
                 const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
                 console.log('Data row:', dataRow);
-                console.log('Data row length:', dataRow.length);
                 
                 // SAFELY map to your KPI structure with fallbacks
                 currentData = {
@@ -613,65 +608,14 @@
                 console.log('Mapped data:', currentData);
                 
                 updateDashboard();
-                document.getElementById('lastUpdated').innerHTML = `✅ Updated from Google Sheet: ${new Date().toLocaleString()}`;
+                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
                 showSuccess('Data loaded successfully!');
-                
-                // Reset countdown
-                resetCountdown();
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data from Google Sheet';
+                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
                 showError(`Error: ${error.message}. Using sample data.`);
                 useSampleData();
-            }
-        }
-
-        // Set auto-refresh interval
-        function setAutoRefresh() {
-            const minutes = parseInt(document.getElementById('refreshInterval').value);
-            localStorage.setItem('refreshInterval', minutes);
-            
-            // Clear existing timers
-            stopAutoRefresh();
-            
-            if (minutes > 0) {
-                // Set new timer
-                refreshTimer = setInterval(loadSheetData, minutes * 60 * 1000);
-                secondsUntilRefresh = minutes * 60;
-                startCountdown();
-            }
-        }
-
-        function stopAutoRefresh() {
-            if (refreshTimer) {
-                clearInterval(refreshTimer);
-                refreshTimer = null;
-            }
-            if (countdownTimer) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-            }
-            document.getElementById('countdown').innerHTML = '';
-        }
-
-        function startCountdown() {
-            if (countdownTimer) clearInterval(countdownTimer);
-            
-            countdownTimer = setInterval(() => {
-                if (secondsUntilRefresh > 0) {
-                    secondsUntilRefresh--;
-                    const mins = Math.floor(secondsUntilRefresh / 60);
-                    const secs = secondsUntilRefresh % 60;
-                    document.getElementById('countdown').innerHTML = `Next refresh in: ${mins}:${secs.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-        }
-
-        function resetCountdown() {
-            const minutes = parseInt(document.getElementById('refreshInterval').value);
-            if (minutes > 0) {
-                secondsUntilRefresh = minutes * 60;
             }
         }
 
@@ -724,14 +668,19 @@
                 const gap = perf.gap;
                 const progress = perf.progress;
                 
-                let weightedTarget, weightedActual;
+                let weightedTarget, weightedActual, scoreDisplay;
                 
                 if (type === 'zero-is-best') {
                     weightedTarget = 0;
                     weightedActual = isGood ? target * (weight / 100) : 0;
+                    // For ZTP, score is either 0 or full weight
+                    scoreDisplay = isGood ? `${weight}.0` : '0.0';
                 } else {
                     weightedTarget = target * (weight / 100);
                     weightedActual = actual * (weight / 100);
+                    // Calculate score out of weight: (actual/target) * weight
+                    const scoreOutOfWeight = (actual / target) * weight;
+                    scoreDisplay = scoreOutOfWeight.toFixed(2);
                 }
 
                 totalWeightedTarget += weightedTarget;
@@ -814,7 +763,7 @@
                         <td>${weight}%</td>
                         <td class="gap ${gapClass}">${gapDisplay}</td>
                         <td><span class="status ${statusClass}" style="display: inline-block;">${status}</span></td>
-                        <td>${weightedActual.toFixed(2)}</td>
+                        <td class="score-highlight">${scoreDisplay} / ${weight}</td>
                         <td>${dailyNeed}</td>
                     </tr>
                 `;
@@ -826,8 +775,7 @@
             const perfPercent = totalWeightedTarget > 0 ? (totalWeightedActual / totalWeightedTarget * 100).toFixed(1) : '0';
             document.getElementById('overallPerf').innerHTML = perfPercent + '%';
             document.getElementById('progressFill').style.width = perfPercent + '%';
-            document.getElementById('totalScore').innerHTML = totalWeightedActual.toFixed(2);
-            document.getElementById('totalTarget').innerHTML = totalWeightedTarget.toFixed(2);
+            document.getElementById('totalScore').innerHTML = totalWeightedActual.toFixed(1);
             document.getElementById('onTrackCount').innerHTML = `${onTrackCount}/9`;
             document.getElementById('behindCount').innerHTML = behindCount;
             
@@ -851,8 +799,6 @@
             } else {
                 useSampleData();
             }
-            
-            setAutoRefresh();
         };
     </script>
 </body>
