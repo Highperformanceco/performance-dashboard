@@ -78,18 +78,43 @@
             background: #38a169;
         }
 
-        .last-updated {
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
             margin-top: 10px;
-            color: #999;
-            font-size: 0.9em;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
         }
 
         .auto-refresh {
-            margin-top: 10px;
+            margin-top: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
             color: #666;
+        }
+
+        .auto-refresh select {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .last-updated {
+            margin-top: 10px;
+            color: #999;
+            font-size: 0.9em;
         }
 
         .kpi-grid {
@@ -288,6 +313,16 @@
             margin-top: 30px;
             color: white;
         }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -298,10 +333,13 @@
             <p>Your sheet link is saved automatically - paste once and it remembers!</p>
             
             <div class="sheet-url">
-                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTJqMJ6nPS9Boq3fH0Soy8SIleoLr3gJO7G0FxnTeu2O37AaYLSWoOxC4AQrcycdAWjJSFFgh4_uHvl/pub?output=csv"">
+                <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" value="">
                 <button class="btn btn-save" onclick="saveAndLoad()">Save & Load</button>
                 <button class="btn" onclick="useSampleData()" style="background: #6c757d;">Use Sample</button>
             </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
             
             <div class="auto-refresh">
                 <span>🔄 Auto-refresh every:</span>
@@ -373,7 +411,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Made with ❤️ for easy KPI tracking | Data auto-loads from your Google Sheet</p>
+            <p>Made with ❤️ for easy KPI tracking | <a href="https://github.com/Highperformanceco/performance-dashboard" target="_blank">GitHub Repository</a></p>
         </div>
     </div>
 
@@ -417,6 +455,26 @@
         let countdownTimer = null;
         let secondsUntilRefresh = 0;
 
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
         // Load saved settings
         function loadSettings() {
             const savedUrl = localStorage.getItem('sheetUrl');
@@ -435,16 +493,11 @@
             const url = document.getElementById('sheetUrl').value;
             if (url) {
                 localStorage.setItem('sheetUrl', url);
+                showSuccess('URL saved! Loading data...');
                 loadSheetData();
             } else {
-                alert('Please paste your Google Sheet URL');
+                showError('Please paste your Google Sheet URL');
             }
-        }
-
-        // Save refresh interval
-        function saveRefreshInterval() {
-            const interval = document.getElementById('refreshInterval').value;
-            localStorage.setItem('refreshInterval', interval);
         }
 
         // Use sample data
@@ -452,10 +505,10 @@
             currentData = { ...SAMPLE_DATA };
             updateDashboard();
             document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
-            stopAutoRefresh();
+            showSuccess('Sample data loaded');
         }
 
-        // Load from Google Sheet
+        // Load from Google Sheet with proxy rotation
         async function loadSheetData() {
             const sheetUrl = document.getElementById('sheetUrl').value;
             
@@ -465,42 +518,82 @@
             }
 
             try {
-                document.getElementById('lastUpdated').innerHTML = '🔄 Loading...';
+                document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
                 
-                // Convert to CSV export URL
-                const csvUrl = sheetUrl.replace('/pubhtml', '/export?format=csv');
+                // List of reliable CORS proxies (tries each one if previous fails)
+                const proxies = [
+                    'https://api.allorigins.win/raw?url=',
+                    'https://corsproxy.io/?',
+                    'https://thingproxy.freeboard.io/fetch/',
+                    'https://cors-anywhere.herokuapp.com/'
+                ];
                 
-                const response = await fetch(csvUrl);
-                const csvText = await response.text();
+                let csvText = null;
+                let lastError = null;
                 
-                // Parse CSV
-                const rows = csvText.split('\n');
-                if (rows.length >= 2) {
-                    const dataRow = rows[1].split(',');
-                    
-                    // Map to our KPI structure
-                    currentData = {
-                        AHT: parseFloat(dataRow[0]) || SAMPLE_DATA.AHT,
-                        IC: parseFloat(dataRow[1]) || SAMPLE_DATA.IC,
-                        QA: parseFloat(dataRow[2]) || SAMPLE_DATA.QA,
-                        Gauge: parseFloat(dataRow[3]) || SAMPLE_DATA.Gauge,
-                        RSAT: parseFloat(dataRow[4]) || SAMPLE_DATA.RSAT,
-                        FCR: parseFloat(dataRow[5]) || SAMPLE_DATA.FCR,
-                        Cancellation: parseFloat(dataRow[6]) || SAMPLE_DATA.Cancellation,
-                        MU: parseFloat(dataRow[7]) || SAMPLE_DATA.MU,
-                        ZTP: parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP
-                    };
+                // Try each proxy until one works
+                for (const proxy of proxies) {
+                    try {
+                        const proxyUrl = proxy + encodeURIComponent(sheetUrl);
+                        console.log('Trying proxy:', proxy);
+                        
+                        const response = await fetch(proxyUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'text/csv',
+                            },
+                        });
+                        
+                        if (response.ok) {
+                            csvText = await response.text();
+                            console.log('Success with proxy:', proxy);
+                            break; // Exit loop if successful
+                        }
+                    } catch (e) {
+                        lastError = e;
+                        console.log('Proxy failed:', proxy, e.message);
+                        continue; // Try next proxy
+                    }
                 }
                 
+                if (!csvText) {
+                    throw new Error('All proxies failed. Last error: ' + (lastError ? lastError.message : 'unknown'));
+                }
+                
+                // Parse CSV
+                const rows = csvText.split('\n').filter(row => row.trim());
+                if (rows.length < 2) {
+                    throw new Error('Not enough rows in CSV');
+                }
+                
+                // Parse the data row (second row)
+                const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
+                console.log('Data row:', dataRow);
+                
+                // Map to your KPI structure (based on your headers)
+                currentData = {
+                    AHT: parseFloat(dataRow[0]) || SAMPLE_DATA.AHT,
+                    IC: parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC,
+                    QA: parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA,
+                    Gauge: parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge,
+                    RSAT: parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT,
+                    FCR: parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR,
+                    Cancellation: parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation,
+                    MU: parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU,
+                    ZTP: parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP
+                };
+                
                 updateDashboard();
-                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+                document.getElementById('lastUpdated').innerHTML = `✅ Updated from Google Sheet: ${new Date().toLocaleString()}`;
+                showSuccess('Data loaded successfully!');
                 
                 // Reset countdown
                 resetCountdown();
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data, using sample';
+                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data from Google Sheet';
+                showError(`Error: ${error.message}. Using sample data.`);
                 useSampleData();
             }
         }
@@ -508,7 +601,7 @@
         // Set auto-refresh interval
         function setAutoRefresh() {
             const minutes = parseInt(document.getElementById('refreshInterval').value);
-            saveRefreshInterval();
+            localStorage.setItem('refreshInterval', minutes);
             
             // Clear existing timers
             stopAutoRefresh();
@@ -561,7 +654,7 @@
                     return {
                         isGood: actual <= target,
                         gap: actual - target,  // Positive means worse (above target)
-                        progress: Math.min(100, (target / actual) * 100) // Inverse progress
+                        progress: Math.min(100, (target / Math.max(actual, 0.1)) * 100) // Inverse progress
                     };
                 case 'zero-is-best':
                     // For ZTP: 0 is perfect
@@ -612,10 +705,6 @@
                 if (type === 'zero-is-best') {
                     weightedTarget = 0; // Target is 0
                     weightedActual = isGood ? target * (weight / 100) : 0; // Full points only if 0
-                } else if (type === 'lower-is-better') {
-                    weightedTarget = target * (weight / 100);
-                    // For AHT, actual score is based on how far below target
-                    weightedActual = actual * (weight / 100);
                 } else {
                     weightedTarget = target * (weight / 100);
                     weightedActual = actual * (weight / 100);
@@ -665,7 +754,7 @@
                     gapClass = gap > 0 ? 'positive' : (gap < 0 ? 'negative' : '');
                 }
 
-                // Daily need
+                // Daily need (using 15 days as default)
                 let dailyNeed;
                 if (type === 'zero-is-best') {
                     dailyNeed = actual > 0 ? 'MUST BE 0%' : 'Maintain 0%';
