@@ -416,7 +416,7 @@
                         <th>Weight</th>
                         <th>Gap</th>
                         <th>Status</th>
-                        <th>Score (out of weight)</th>
+                        <th>Score</th>
                         <th>Daily Need</th>
                     </tr>
                 </thead>
@@ -438,7 +438,7 @@
     </div>
 
     <script>
-        // KPI CONFIGURATION with direction indicators - CORRECTED WEIGHTS
+        // KPI CONFIGURATION - EXACTLY AS YOU SPECIFIED
         const KPI_CONFIG = {
             AHT: { 
                 target: 240, 
@@ -460,15 +460,15 @@
         
         // Sample data 
         const SAMPLE_DATA = {
-            AHT: 227,
-            IC: 52.11,
-            QA: 90.69,
-            Gauge: 98.26,
-            RSAT: 82.37,
-            FCR: 87.99,
-            Cancellation: 57.38,
-            MU: 96.43,
-            ZTP: 13
+            AHT: 263,
+            IC: 96.45,
+            QA: 92.54,
+            Gauge: 100.0,
+            RSAT: 82.19,
+            FCR: 87.37,
+            Cancellation: 87.08,
+            MU: 100.0,
+            ZTP: 2
         };
 
         let currentData = { ...SAMPLE_DATA };
@@ -598,25 +598,22 @@
             }
         }
 
-        // Calculate performance based on KPI type - FIXED
+        // Calculate performance based on KPI type
         function calculatePerformance(actual, target, type) {
             switch(type) {
                 case 'lower-is-better':
-                    // For AHT: if actual <= target, it's good. Score based on how much below target
                     return {
                         isGood: actual <= target,
-                        gap: actual - target, // Positive means worse (above target)
-                        progress: actual <= target ? 100 : Math.max(0, (target / actual) * 100) // If above target, show inverse progress
+                        gap: actual - target,
+                        progress: actual <= target ? 100 : Math.max(0, (target / actual) * 100)
                     };
                 case 'zero-is-best':
-                    // For ZTP: 0 is perfect, any value above 0 is bad
                     return {
                         isGood: actual === 0,
-                        gap: actual, // Gap is the actual value
+                        gap: actual,
                         progress: actual === 0 ? 100 : 0
                     };
                 default:
-                    // Higher is better (normal KPIs)
                     return {
                         isGood: actual >= target,
                         gap: target - actual,
@@ -650,34 +647,20 @@
                 const gap = perf.gap;
                 const progress = perf.progress;
                 
-                let weightedTarget, weightedActual, scoreDisplay;
+                // Calculate weighted scores
+                let weightedActual;
+                let scoreDisplay;
                 
                 if (type === 'zero-is-best') {
-                    weightedTarget = 0;
-                    weightedActual = isGood ? target * (weight / 100) : 0;
-                    // ZTP: full points only if actual is 0
+                    // For ZTP: score is full weight only if actual is 0
+                    weightedActual = isGood ? weight : 0;
                     scoreDisplay = isGood ? weight.toFixed(2) : '0.0';
-                } else if (type === 'lower-is-better') {
-                    weightedTarget = target * (weight / 100);
-                    weightedActual = actual * (weight / 100);
-                    // For AHT and similar: score is based on how close to target
-                    if (actual <= target) {
-                        scoreDisplay = weight.toFixed(2); // Full points when below target
-                    } else {
-                        // When above target, score reduces proportionally
-                        const performanceRatio = target / actual;
-                        const scoreOutOfWeight = weight * performanceRatio;
-                        scoreDisplay = scoreOutOfWeight.toFixed(2);
-                    }
                 } else {
-                    weightedTarget = target * (weight / 100);
-                    weightedActual = actual * (weight / 100);
-                    // Normal KPIs: score based on actual/target ratio
-                    const scoreOutOfWeight = (actual / target) * weight;
-                    scoreDisplay = Math.min(weight, scoreOutOfWeight).toFixed(2);
+                    // For all other KPIs: score is the actual value itself
+                    weightedActual = actual;
+                    scoreDisplay = actual.toFixed(2);
                 }
 
-                totalWeightedTarget += weightedTarget;
                 totalWeightedActual += weightedActual;
 
                 if (isGood) {
@@ -757,7 +740,7 @@
                         <td>${weight}%</td>
                         <td class="gap ${gapClass}">${gapDisplay}</td>
                         <td><span class="status ${statusClass}" style="display: inline-block;">${status}</span></td>
-                        <td class="score-highlight">${scoreDisplay} / ${weight}</td>
+                        <td class="score-highlight">${scoreDisplay}</td>
                         <td>${dailyNeed}</td>
                     </tr>
                 `;
@@ -766,7 +749,7 @@
             document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
             document.getElementById('tableBody').innerHTML = tableRows;
             
-            const perfPercent = totalWeightedTarget > 0 ? (totalWeightedActual / totalWeightedTarget * 100).toFixed(1) : '0';
+            const perfPercent = (totalWeightedActual / 100).toFixed(1);
             document.getElementById('overallPerf').innerHTML = perfPercent + '%';
             document.getElementById('progressFill').style.width = perfPercent + '%';
             document.getElementById('totalScore').innerHTML = totalWeightedActual.toFixed(1);
