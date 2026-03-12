@@ -440,11 +440,7 @@
     <script>
         // KPI CONFIGURATION
         const KPI_CONFIG = {
-            AHT: { 
-                weight: 15, 
-                unit: '', 
-                type: 'aht'
-            },
+            AHT: { weight: 15, unit: '', type: 'aht' },
             IC: { weight: 10, unit: '%', type: 'ic' },
             QA: { weight: 10, unit: '%', type: 'qa' },
             Gauge: { weight: 5, unit: '%', type: 'gauge' },
@@ -457,13 +453,13 @@
 
         const KPI_NAMES = ['AHT', 'IC', 'QA', 'Gauge', 'RSAT', 'FCR', 'Cancellation', 'MU', 'ZTP'];
         
-        // Sample data 
+        // Sample data matching your Excel sheet
         const SAMPLE_DATA = {
-            AHT: 255,
+            AHT: 237,
             IC: 93.13,
             QA: 91.04,
             Gauge: 95.78,
-            RSAT: 80,
+            RSAT: 80.33,
             FCR: 88.64,
             Cancellation: 92.85,
             MU: 94.33,
@@ -597,58 +593,67 @@
             }
         }
 
-        // Calculate score based on KPI type and actual value
+        // Calculate score based on EXACT Excel formulas
         function calculateScore(kpi, actual) {
             switch(kpi) {
                 case 'AHT':
-                    // ≤240=15, ≤250=10, ≤260=5, >260=0 with linear interpolation
+                    // =IF(D2<=240,15,IF(D2<=250,(250-D2)/(250-240)*5+10,IF(D2<=260,(260-D2)/(260-250)*5+5,0)))
                     if (actual <= 240) return 15;
                     if (actual <= 250) return ((250 - actual) / (250 - 240)) * 5 + 10;
                     if (actual <= 260) return ((260 - actual) / (260 - 250)) * 5 + 5;
                     return 0;
                     
                 case 'IC':
-                    // ≥98=10, ≥96=7, ≥95=5, <95=0
+                    // =IF(D3>=98,10,IF(D3>=96,(D3-96)/(98-96)*3+7,IF(D3>=95,(D3-95)/(96-95)*2+5,0)))
                     if (actual >= 98) return 10;
-                    if (actual >= 96) return 7;
-                    if (actual >= 95) return 5;
+                    if (actual >= 96) return ((actual - 96) / (98 - 96)) * 3 + 7;
+                    if (actual >= 95) return ((actual - 95) / (96 - 95)) * 2 + 5;
+                    return 0;
+                    
+                case 'FCR':
+                    // =IF(D4>=90,10,IF(D4>=89,(D4-89)/(90-89)*5+5,IF(D4>=88,(D4-88)/(89-88)*3,0)))
+                    if (actual >= 90) return 10;
+                    if (actual >= 89) return ((actual - 89) / (90 - 89)) * 5 + 5;
+                    if (actual >= 88) return ((actual - 88) / (89 - 88)) * 3;
                     return 0;
                     
                 case 'QA':
-                case 'FCR':
-                    // ≥90=10, ≥85=5, ≥80=2.5, <80=0
+                    // =IF(D5>=90,10,IF(D5>=85,(D5-85)/(90-85)*5+5,IF(D5>=80,(D5-80)/(85-80)*2.5,0)))
                     if (actual >= 90) return 10;
-                    if (actual >= 85) return 5;
-                    if (actual >= 80) return 2.5;
+                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
+                    if (actual >= 80) return ((actual - 80) / (85 - 80)) * 2.5;
                     return 0;
                     
                 case 'Gauge':
-                    // ≥95=5, ≥90=3, <90=0
+                    // Based on your note: gauge is higher is better with different bands
                     if (actual >= 95) return 5;
-                    if (actual >= 90) return 3;
+                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5;
+                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
                     return 0;
                     
                 case 'RSAT':
-                    // ≥83=25, ≥81=15, ≥79=10, <79=0 with linear interpolation
+                    // =IF(D7>=83,25,IF(D7>=81,(D7-81)/(83-81)*10+15,IF(D7>=79,(D7-79)/(81-79)*5+10,0)))
                     if (actual >= 83) return 25;
                     if (actual >= 81) return ((actual - 81) / (83 - 81)) * 10 + 15;
                     if (actual >= 79) return ((actual - 79) / (81 - 79)) * 5 + 10;
                     return 0;
                     
                 case 'Cancellation':
-                    // ≥90=10, ≥80=5, ≥75=3, <75=0
+                    // =IF(D8>=90,10,IF(D8>=80,(D8-80)/(90-80)*5+5,IF(D8>=75,(D8-75)/(80-75)*3,0)))
                     if (actual >= 90) return 10;
-                    if (actual >= 80) return 5;
-                    if (actual >= 75) return 3;
+                    if (actual >= 80) return ((actual - 80) / (90 - 80)) * 5 + 5;
+                    if (actual >= 75) return ((actual - 75) / (80 - 75)) * 3;
                     return 0;
                     
                 case 'MU':
-                    // ≥95=10, <95=0
+                    // =IF(D9>=95,10,IF(D9>=90,(D9-90)/(95-90)*5+5,IF(D9>=85,(D9-85)/(90-85)*3,0)))
                     if (actual >= 95) return 10;
-                    return actual; // Linear interpolation for MU (as shown in your sheet: 94.33 gives 9.33)
+                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5 + 5;
+                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 3;
+                    return actual; // Linear interpolation for values below 85
                     
                 case 'ZTP':
-                    // 0% = 5 points, >0% = 0 points
+                    // =IF(D10=0,5,0)
                     return actual === 0 ? 5 : 0;
                     
                 default:
@@ -673,7 +678,7 @@
                 const actual = currentData[kpi];
                 const weight = config.weight;
                 
-                // Calculate score based on banded logic
+                // Calculate score based on Excel formulas
                 const score = calculateScore(kpi, actual);
                 
                 // Determine target display based on KPI
@@ -803,7 +808,7 @@
                         <td>${weight}%</td>
                         <td class="gap ${gapClass}">${gapDisplay}</td>
                         <td><span class="status ${statusClass}" style="display: inline-block;">${status}</span></td>
-                        <td class="score-highlight">${score.toFixed(2)} / ${weight}</td>
+                        <td class="score-highlight">${score.toFixed(3)} / ${weight}</td>
                         <td>${dailyNeed}</td>
                     </tr>
                 `;
@@ -812,10 +817,10 @@
             document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
             document.getElementById('tableBody').innerHTML = tableRows;
             
-            const perfPercent = (totalScore).toFixed(1);
+            const perfPercent = (totalScore).toFixed(3);
             document.getElementById('overallPerf').innerHTML = perfPercent + '%';
             document.getElementById('progressFill').style.width = perfPercent + '%';
-            document.getElementById('totalScore').innerHTML = totalScore.toFixed(1);
+            document.getElementById('totalScore').innerHTML = totalScore.toFixed(3);
             document.getElementById('onTrackCount').innerHTML = `${onTrackCount}/9`;
             document.getElementById('behindCount').innerHTML = behindCount;
             
