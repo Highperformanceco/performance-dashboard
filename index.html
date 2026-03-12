@@ -522,85 +522,81 @@
         }
 
         // Load from Google Sheet using Google Apps Script proxy
-        async function loadSheetData() {
-            const sheetUrl = document.getElementById('sheetUrl').value;
-            
-            if (!sheetUrl) {
-                useSampleData();
-                return;
-            }
+async function loadSheetData() {
+    const sheetUrl = document.getElementById('sheetUrl').value;
+    
+    if (!sheetUrl) {
+        useSampleData();
+        return;
+    }
 
-            try {
-                document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
-                
-                // Your Google Apps Script URL
-                const proxyUrl = 'https://script.google.com/macros/s/AKfycbxe5LdrF-j8oLuaW2g6g9SuJDtDlL-NVRrETJ3X0aomh1_3kAV_eKNDn0MxO51cHCcG/exec';
-                
-                // Add cache-busting parameter
-                const cacheBuster = '&_=' + new Date().getTime();
-                const urlWithCache = sheetUrl + cacheBuster;
-                
-                console.log('Fetching via Google Apps Script...');
-                console.log('Proxy URL:', proxyUrl + '?url=' + encodeURIComponent(urlWithCache));
-                
-                const response = await fetch(proxyUrl + '?url=' + encodeURIComponent(urlWithCache), {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'text/csv',
-                    },
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvText = await response.text();
-                console.log('Data received, length:', csvText.length);
-                
-                // Check if response is an error message
-                if (csvText.includes('error') || csvText.includes('Error')) {
-                    console.warn('Possible error in response:', csvText.substring(0, 200));
-                }
-                
-                // Parse CSV
-                const rows = csvText.split('\n').filter(row => row.trim() !== '');
-                console.log('Total rows:', rows.length);
-                
-                if (rows.length < 2) {
-                    console.log('CSV content:', csvText.substring(0, 500));
-                    throw new Error('Not enough rows in CSV');
-                }
-                
-                // Get the data row (second row)
-                const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
-                console.log('Data row:', dataRow);
-                
-                // Map to your KPI structure
-                currentData = {
-                    AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
-                    IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
-                    QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
-                    Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
-                    RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
-                    FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
-                    Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
-                    MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
-                    ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
-                };
-                
-                console.log('Mapped data:', currentData);
-                
-                updateDashboard();
-                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
-                showSuccess('Data loaded successfully!');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
-                showError(`Error: ${error.message}. Using sample data.`);
-                useSampleData();
-            }
+    try {
+        document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
+        
+        // YOUR NEW WORKING PROXY URL
+        const proxyUrl = 'https://script.google.com/macros/s/AKfycbwgM29ujvLi5jJLvHOx3IiA3cxDZmuc2r34Rn5NKiyu8UdhckxsCAnxWu6HWDy2JLdu/exec';
+        
+        // Add cache-busting parameter
+        const cacheBuster = '&_=' + new Date().getTime();
+        const urlWithCache = sheetUrl + cacheBuster;
+        
+        // Construct the full URL
+        const fullUrl = proxyUrl + '?url=' + encodeURIComponent(urlWithCache);
+        
+        console.log('Fetching from:', fullUrl);
+        
+        const response = await fetch(fullUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const csvText = await response.text();
+        console.log('Data received:', csvText.substring(0, 200));
+        
+        // Check if response is an error
+        if (csvText.includes('Error:')) {
+            throw new Error(csvText);
+        }
+        
+        // Parse CSV
+        const rows = csvText.split('\n').filter(row => row.trim() !== '');
+        console.log('Total rows:', rows.length);
+        
+        if (rows.length < 2) {
+            throw new Error('Not enough rows in CSV');
+        }
+        
+        // Get the data row (second row)
+        const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
+        console.log('Data row:', dataRow);
+        
+        // Map to your KPI structure
+        currentData = {
+            AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
+            IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
+            QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
+            Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
+            RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
+            FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
+            Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
+            MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
+            ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
+        };
+        
+        console.log('Mapped data:', currentData);
+        
+        updateDashboard();
+        document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+        showSuccess('Data loaded successfully!');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+        showError(`Error: ${error.message}. Using sample data.`);
+        useSampleData();
+    }
+}
 
         // Calculate performance based on KPI type
         function calculatePerformance(actual, target, type) {
