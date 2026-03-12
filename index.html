@@ -522,98 +522,101 @@
         }
 
         // Load from Google Sheet using Google Apps Script proxy
-async function loadSheetData() {
-    const sheetUrl = document.getElementById('sheetUrl').value;
-    
-    if (!sheetUrl) {
-        useSampleData();
-        return;
-    }
+        async function loadSheetData() {
+            const sheetUrl = document.getElementById('sheetUrl').value;
+            
+            if (!sheetUrl) {
+                useSampleData();
+                return;
+            }
 
-    try {
-        document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
-        
-        // YOUR NEW WORKING PROXY URL
-        const proxyUrl = 'https://script.google.com/macros/s/AKfycbwgM29ujvLi5jJLvHOx3IiA3cxDZmuc2r34Rn5NKiyu8UdhckxsCAnxWu6HWDy2JLdu/exec';
-        
-        // Add cache-busting parameter
-        const cacheBuster = '&_=' + new Date().getTime();
-        const urlWithCache = sheetUrl + cacheBuster;
-        
-        // Construct the full URL
-        const fullUrl = proxyUrl + '?url=' + encodeURIComponent(urlWithCache);
-        
-        console.log('Fetching from:', fullUrl);
-        
-        const response = await fetch(fullUrl);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                document.getElementById('lastUpdated').innerHTML = '🔄 Loading from Google Sheet...';
+                
+                // YOUR NEW WORKING PROXY URL
+                const proxyUrl = 'https://script.google.com/macros/s/AKfycbwgM29ujvLi5jJLvHOx3IiA3cxDZmuc2r34Rn5NKiyu8UdhckxsCAnxWu6HWDy2JLdu/exec';
+                
+                // Add cache-busting parameter
+                const cacheBuster = '&_=' + new Date().getTime();
+                const urlWithCache = sheetUrl + cacheBuster;
+                
+                // Construct the full URL
+                const fullUrl = proxyUrl + '?url=' + encodeURIComponent(urlWithCache);
+                
+                console.log('Fetching from:', fullUrl);
+                
+                const response = await fetch(fullUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                console.log('Data received:', csvText.substring(0, 200));
+                
+                // Check if response is an error
+                if (csvText.includes('Error:')) {
+                    throw new Error(csvText);
+                }
+                
+                // Parse CSV
+                const rows = csvText.split('\n').filter(row => row.trim() !== '');
+                console.log('Total rows:', rows.length);
+                
+                if (rows.length < 2) {
+                    throw new Error('Not enough rows in CSV');
+                }
+                
+                // Get the data row (second row)
+                const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
+                console.log('Data row:', dataRow);
+                
+                // Map to your KPI structure
+                currentData = {
+                    AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
+                    IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
+                    QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
+                    Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
+                    RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
+                    FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
+                    Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
+                    MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
+                    ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
+                };
+                
+                console.log('Mapped data:', currentData);
+                
+                updateDashboard();
+                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+                showSuccess('Data loaded successfully!');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+                showError(`Error: ${error.message}. Using sample data.`);
+                useSampleData();
+            }
         }
-        
-        const csvText = await response.text();
-        console.log('Data received:', csvText.substring(0, 200));
-        
-        // Check if response is an error
-        if (csvText.includes('Error:')) {
-            throw new Error(csvText);
-        }
-        
-        // Parse CSV
-        const rows = csvText.split('\n').filter(row => row.trim() !== '');
-        console.log('Total rows:', rows.length);
-        
-        if (rows.length < 2) {
-            throw new Error('Not enough rows in CSV');
-        }
-        
-        // Get the data row (second row)
-        const dataRow = rows[1].split(',').map(v => v.trim().replace(/"/g, ''));
-        console.log('Data row:', dataRow);
-        
-        // Map to your KPI structure
-        currentData = {
-            AHT: dataRow[0] ? parseFloat(dataRow[0]) || SAMPLE_DATA.AHT : SAMPLE_DATA.AHT,
-            IC: dataRow[1] ? parseFloat(dataRow[1].replace('%', '')) || SAMPLE_DATA.IC : SAMPLE_DATA.IC,
-            QA: dataRow[2] ? parseFloat(dataRow[2].replace('%', '')) || SAMPLE_DATA.QA : SAMPLE_DATA.QA,
-            Gauge: dataRow[3] ? parseFloat(dataRow[3].replace('%', '')) || SAMPLE_DATA.Gauge : SAMPLE_DATA.Gauge,
-            RSAT: dataRow[4] ? parseFloat(dataRow[4].replace('%', '')) || SAMPLE_DATA.RSAT : SAMPLE_DATA.RSAT,
-            FCR: dataRow[5] ? parseFloat(dataRow[5].replace('%', '')) || SAMPLE_DATA.FCR : SAMPLE_DATA.FCR,
-            Cancellation: dataRow[6] ? parseFloat(dataRow[6].replace('%', '')) || SAMPLE_DATA.Cancellation : SAMPLE_DATA.Cancellation,
-            MU: dataRow[7] ? parseFloat(dataRow[7].replace('%', '')) || SAMPLE_DATA.MU : SAMPLE_DATA.MU,
-            ZTP: dataRow[8] ? parseFloat(dataRow[8]) || SAMPLE_DATA.ZTP : SAMPLE_DATA.ZTP
-        };
-        
-        console.log('Mapped data:', currentData);
-        
-        updateDashboard();
-        document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
-        showSuccess('Data loaded successfully!');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
-        showError(`Error: ${error.message}. Using sample data.`);
-        useSampleData();
-    }
-}
 
-        // Calculate performance based on KPI type
+        // Calculate performance based on KPI type - FIXED
         function calculatePerformance(actual, target, type) {
             switch(type) {
                 case 'lower-is-better':
+                    // For AHT: if actual <= target, it's good. Score based on how much below target
                     return {
                         isGood: actual <= target,
-                        gap: actual - target,
-                        progress: Math.min(100, (target / Math.max(actual, 0.1)) * 100)
+                        gap: actual - target, // Positive means worse (above target)
+                        progress: actual <= target ? 100 : Math.max(0, (target / actual) * 100) // If above target, show inverse progress
                     };
                 case 'zero-is-best':
+                    // For ZTP: 0 is perfect, any value above 0 is bad
                     return {
                         isGood: actual === 0,
-                        gap: actual,
+                        gap: actual, // Gap is the actual value
                         progress: actual === 0 ? 100 : 0
                     };
                 default:
+                    // Higher is better (normal KPIs)
                     return {
                         isGood: actual >= target,
                         gap: target - actual,
@@ -652,14 +655,26 @@ async function loadSheetData() {
                 if (type === 'zero-is-best') {
                     weightedTarget = 0;
                     weightedActual = isGood ? target * (weight / 100) : 0;
-                    // For ZTP, score is either 0 or full weight
-                    scoreDisplay = isGood ? `${weight}.0` : '0.0';
+                    // ZTP: full points only if actual is 0
+                    scoreDisplay = isGood ? weight.toFixed(2) : '0.0';
+                } else if (type === 'lower-is-better') {
+                    weightedTarget = target * (weight / 100);
+                    weightedActual = actual * (weight / 100);
+                    // For AHT and similar: score is based on how close to target
+                    if (actual <= target) {
+                        scoreDisplay = weight.toFixed(2); // Full points when below target
+                    } else {
+                        // When above target, score reduces proportionally
+                        const performanceRatio = target / actual;
+                        const scoreOutOfWeight = weight * performanceRatio;
+                        scoreDisplay = scoreOutOfWeight.toFixed(2);
+                    }
                 } else {
                     weightedTarget = target * (weight / 100);
                     weightedActual = actual * (weight / 100);
-                    // Calculate score out of weight: (actual/target) * weight
+                    // Normal KPIs: score based on actual/target ratio
                     const scoreOutOfWeight = (actual / target) * weight;
-                    scoreDisplay = scoreOutOfWeight.toFixed(2);
+                    scoreDisplay = Math.min(weight, scoreOutOfWeight).toFixed(2);
                 }
 
                 totalWeightedTarget += weightedTarget;
