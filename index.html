@@ -241,9 +241,9 @@
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 25px;
             color: #64748b;
-            font-size: 0.7em;
+            font-size: 0.8em;
             font-weight: 600;
         }
 
@@ -262,7 +262,7 @@
             bottom: 0;
             left: 50%;
             width: 3px;
-            height: 70px;
+            height: 65px;
             transform-origin: bottom center;
             transition: transform 0.5s ease;
             border-radius: 2px;
@@ -321,48 +321,12 @@
             box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
         }
 
-        .speedometer-values {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0 10px;
-            padding: 0 10px;
-        }
-
-        .value-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.75em;
-        }
-
-        .value-indicator .label {
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-size: 0.7em;
-        }
-
-        .value-indicator .target-value {
-            color: #10b981;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .value-indicator .actual-value {
-            color: #fbbf24;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .value-indicator .actual-value.below-target {
-            color: #ef4444;
-        }
-
         .kpi-values {
             display: flex;
             justify-content: space-around;
             background: rgba(51, 65, 85, 0.3);
             border-radius: 12px;
-            padding: 12px 10px;
+            padding: 15px 10px;
             border: 1px solid #334155;
             margin: 15px 0 10px;
         }
@@ -380,13 +344,13 @@
         }
 
         .actual .value {
-            font-size: 1.3em;
+            font-size: 1.4em;
             font-weight: bold;
             color: #fbbf24;
         }
 
         .target .value {
-            font-size: 1.1em;
+            font-size: 1.2em;
             color: #94a3b8;
         }
 
@@ -756,10 +720,8 @@
             }
         }
 
-        function generateDualNeedleSpeedometer(actualPercentage, targetPercentage, status, actual, target, unit) {
-            // Target needle always at 100% (pointing to the rightmost position)
-            const targetAngle = -90 + (100 * 1.8); // Always 90deg
-            // Actual needle angle based on actual percentage
+        function generateDualNeedleSpeedometer(actualPercentage, targetPercentage, status) {
+            const targetAngle = -90 + (100 * 1.8);
             const actualAngle = -90 + (actualPercentage * 1.8);
             
             const isBelowTarget = actualPercentage < targetPercentage;
@@ -769,12 +731,6 @@
                 <div class="speedometer-container">
                     <svg class="speedometer-svg" viewBox="0 0 220 120">
                         <path d="M30,90 A80,80 0 0,1 190,90" class="speedometer-bg" stroke="#334155" fill="none" stroke-width="14"/>
-                        <path d="M30,90 A80,80 0 0,1 ${30 + (160 * actualPercentage/100)},90" 
-                              class="speedometer-bg" 
-                              stroke="${isBelowTarget ? '#ef4444' : '#fbbf24'}" 
-                              fill="none" 
-                              stroke-width="14"
-                              stroke-opacity="0.3"/>
                     </svg>
                     <div class="needle-container">
                         <div class="needle target-needle" style="transform: translateX(-50%) rotate(${targetAngle}deg);"></div>
@@ -783,18 +739,7 @@
                     </div>
                     <div class="speedometer-scale">
                         <span>0</span>
-                        <span>50</span>
                         <span>100</span>
-                    </div>
-                    <div class="speedometer-values">
-                        <div class="value-indicator">
-                            <span class="label">Target</span>
-                            <span class="target-value">${target}${unit}</span>
-                        </div>
-                        <div class="value-indicator">
-                            <span class="label">Actual</span>
-                            <span class="actual-value ${isBelowTarget ? 'below-target' : ''}">${actual}${unit}</span>
-                        </div>
                     </div>
                 </div>
             `;
@@ -884,29 +829,16 @@
                     dailyNeed = gap > 0 ? `${(gap/15).toFixed(2)}%/day` : 'On track';
                 }
 
-                // Calculate percentage for speedometer
                 let actualPercentage = 100;
-                let targetPercentage = 100;
-                
                 if (kpi === 'AHT') {
                     actualPercentage = actual <= 240 ? 100 : Math.max(0, (240 / actual) * 100);
-                    targetPercentage = 100;
                 } else if (kpi === 'ZTP') {
                     actualPercentage = actual === 0 ? 100 : 0;
-                    targetPercentage = 100;
                 } else {
                     actualPercentage = Math.min(100, (actual / targetValue) * 100);
-                    targetPercentage = 100;
                 }
 
-                const speedometerHtml = generateDualNeedleSpeedometer(
-                    actualPercentage, 
-                    targetPercentage, 
-                    status, 
-                    actual, 
-                    targetValue, 
-                    config.unit
-                );
+                const speedometerHtml = generateDualNeedleSpeedometer(actualPercentage, 100, status);
 
                 const cardClass = kpi === 'ZTP' ? 'ztp' : (kpi === 'AHT' ? 'aht' : '');
                 kpiGridHtml += `
