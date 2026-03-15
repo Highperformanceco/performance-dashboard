@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 100%;
             margin: 0 auto;
         }
 
@@ -57,6 +57,7 @@
         .refresh-container {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .btn-refresh {
@@ -168,11 +169,92 @@
             font-size: 0.8em;
         }
 
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+        /* Scroll Controls */
+        .scroll-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .scroll-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .scroll-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .scroll-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .scroll-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .scroll-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .scroll-status {
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
+        /* Horizontal Scrolling KPI Grid */
+        .kpi-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 0 20px 0;
             margin-bottom: 30px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            cursor: grab;
+        }
+
+        .kpi-scroll-container:active {
+            cursor: grabbing;
+        }
+
+        .kpi-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .kpi-scroll-container::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .kpi-scroll-container::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+
+        .kpi-grid {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+            padding: 0 5px;
         }
 
         .kpi-card {
@@ -182,6 +264,8 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             transition: all 0.2s;
             border-left: 4px solid transparent;
+            width: 350px;
+            flex-shrink: 0;
         }
 
         .kpi-card:hover {
@@ -467,6 +551,13 @@
             text-decoration: none;
             font-weight: 500;
         }
+
+        .auto-scroll-notice {
+            color: #64748b;
+            font-size: 0.9em;
+            font-style: italic;
+            margin-left: 15px;
+        }
     </style>
 </head>
 <body>
@@ -516,7 +607,26 @@
             </div>
         </div>
 
-        <div class="kpi-grid" id="kpiGrid"></div>
+        <!-- Scroll Controls -->
+        <div class="scroll-controls">
+            <div class="scroll-title">
+                📊 KPI Tiles
+                <span class="auto-scroll-notice" id="autoScrollNotice">(Auto-scrolling • Click any tile to stop)</span>
+            </div>
+            <div class="scroll-buttons">
+                <button class="scroll-btn" onclick="stopAutoScroll()" id="stopBtn" title="Stop auto-scroll">
+                    <span>⏸️</span> Stop
+                </button>
+                <button class="scroll-btn active" onclick="startAutoScroll()" id="startBtn" title="Start auto-scroll">
+                    <span>▶️</span> Start
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Scrolling KPI Grid -->
+        <div class="kpi-scroll-container" id="kpiScrollContainer">
+            <div class="kpi-grid" id="kpiGrid"></div>
+        </div>
 
         <div class="table-container">
             <h3>📋 Detailed Analysis</h3>
@@ -574,6 +684,8 @@
         };
 
         let currentData = { ...SAMPLE_DATA };
+        let autoScrollInterval = null;
+        let isScrolling = true;
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
@@ -608,6 +720,7 @@
             updateDashboard();
             document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
             showSuccess('Sample data loaded');
+            startAutoScroll();
         }
 
         async function loadSheetData() {
@@ -648,6 +761,7 @@
                 updateDashboard();
                 document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
                 showSuccess('Data loaded successfully!');
+                startAutoScroll();
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -704,6 +818,55 @@
                 default:
                     return 0;
             }
+        }
+
+        // Auto-scroll functionality
+        function startAutoScroll() {
+            if (autoScrollInterval) clearInterval(autoScrollInterval);
+            
+            const container = document.getElementById('kpiScrollContainer');
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            
+            isScrolling = true;
+            document.getElementById('autoScrollNotice').innerHTML = '(Auto-scrolling • Click any tile to stop)';
+            document.getElementById('startBtn').classList.add('active');
+            document.getElementById('stopBtn').classList.remove('active');
+            
+            autoScrollInterval = setInterval(() => {
+                if (!isScrolling) return;
+                
+                const currentScroll = container.scrollLeft;
+                const step = 2; // Scroll speed
+                
+                if (currentScroll >= maxScroll - 10) {
+                    // Reset to beginning when reaching the end
+                    container.scrollLeft = 0;
+                } else {
+                    container.scrollLeft += step;
+                }
+            }, 30);
+        }
+
+        function stopAutoScroll() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+            isScrolling = false;
+            document.getElementById('autoScrollNotice').innerHTML = '(Scrolling stopped • Click Start to resume)';
+            document.getElementById('startBtn').classList.remove('active');
+            document.getElementById('stopBtn').classList.add('active');
+        }
+
+        // Add click event listeners to cards
+        function addCardClickListeners() {
+            const cards = document.querySelectorAll('.kpi-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    stopAutoScroll();
+                });
+            });
         }
 
         function updateDashboard() {
@@ -808,7 +971,7 @@
                 const cardClass = kpi === 'ZTP' ? 'ztp' : (kpi === 'AHT' ? 'aht' : '');
                 
                 kpiGridHtml += `
-                    <div class="kpi-card ${cardClass}">
+                    <div class="kpi-card ${cardClass}" data-kpi="${kpi}">
                         <div class="kpi-header">
                             <div class="kpi-title">
                                 <span class="kpi-name">${config.icon} ${kpi} ${kpi === 'AHT' ? '↓' : ''}</span>
@@ -880,12 +1043,19 @@
                 document.getElementById('priorityKPI').innerHTML = 'All Good!';
                 document.getElementById('priorityDetail').innerHTML = 'no gaps detected';
             }
+            
+            // Add click listeners to cards
+            setTimeout(addCardClickListeners, 100);
         }
 
         window.onload = function() {
             loadSettings();
             const savedUrl = document.getElementById('sheetUrl').value;
-            savedUrl ? loadSheetData() : useSampleData();
+            if (savedUrl) {
+                loadSheetData();
+            } else {
+                useSampleData();
+            }
         };
     </script>
 </body>
