@@ -80,30 +80,24 @@
             box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
         }
 
-        .btn-refresh:active {
-            transform: translateY(0);
+        .error-message, .success-message {
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
         }
 
         .error-message {
             background: rgba(220, 38, 38, 0.2);
             color: #f87171;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
             border: 1px solid #dc2626;
-            font-weight: 500;
         }
 
         .success-message {
             background: rgba(34, 197, 94, 0.2);
             color: #4ade80;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
             border: 1px solid #22c55e;
-            font-weight: 500;
         }
 
         .last-updated {
@@ -127,7 +121,7 @@
             padding: 25px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             border: 1px solid #334155;
-            transition: transform 0.3s, border-color 0.3s;
+            transition: transform 0.3s;
         }
 
         .summary-card:hover {
@@ -148,11 +142,6 @@
             font-weight: bold;
             color: #fbbf24;
             margin-bottom: 10px;
-        }
-
-        .summary-sub {
-            color: #64748b;
-            font-size: 0.9em;
         }
 
         .progress-bar {
@@ -176,10 +165,10 @@
             border: 1px solid #fbbf24;
         }
 
-        /* KPI Grid with Gauges */
+        /* KPI Grid with Speedometers */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
@@ -187,13 +176,12 @@
         .kpi-card {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border-radius: 20px;
-            padding: 25px 20px 20px;
+            padding: 20px 20px 20px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.4);
             border: 1px solid #334155;
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
-            text-align: center;
         }
 
         .kpi-card:hover {
@@ -210,70 +198,11 @@
             border-left: 4px solid #f59e0b;
         }
 
-        /* Speed Meter Gauge */
-        .gauge-container {
-            position: relative;
-            width: 160px;
-            height: 160px;
-            margin: 0 auto 15px;
-        }
-
-        .gauge-svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .gauge-bg {
-            fill: none;
-            stroke: #334155;
-            stroke-width: 12;
-            stroke-linecap: round;
-        }
-
-        .gauge-fill {
-            fill: none;
-            stroke-width: 12;
-            stroke-linecap: round;
-            stroke-dasharray: 377; /* 2 * π * 60 ≈ 377 */
-            stroke-dashoffset: 377;
-            transition: stroke-dashoffset 0.8s ease;
-        }
-
-        .gauge-fill.good {
-            stroke: #10b981;
-        }
-
-        .gauge-fill.warning {
-            stroke: #f59e0b;
-        }
-
-        .gauge-fill.bad {
-            stroke: #ef4444;
-        }
-
-        .gauge-value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #fbbf24;
-        }
-
-        .gauge-unit {
-            font-size: 0.5em;
-            color: #64748b;
-            margin-left: 2px;
-        }
-
         .kpi-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 0 5px;
+            margin-bottom: 15px;
         }
 
         .kpi-name {
@@ -292,14 +221,125 @@
             font-weight: 600;
         }
 
+        /* Speedometer Container */
+        .speedometer-container {
+            position: relative;
+            width: 200px;
+            height: 120px;
+            margin: 0 auto 15px;
+            overflow: hidden;
+        }
+
+        .speedometer-svg {
+            width: 200px;
+            height: 120px;
+            transform: rotate(0deg);
+        }
+
+        .speedometer-bg {
+            fill: none;
+            stroke: #334155;
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 251.2; /* Half of full circle */
+            stroke-dashoffset: 0;
+        }
+
+        .speedometer-fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.8s ease;
+        }
+
+        .speedometer-fill.good {
+            stroke: #10b981;
+        }
+
+        .speedometer-fill.warning {
+            stroke: #f59e0b;
+        }
+
+        .speedometer-fill.bad {
+            stroke: #ef4444;
+        }
+
+        /* Needle */
+        .speedometer-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 70px;
+            background: #fbbf24;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(-90deg);
+            transition: transform 0.8s ease;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .speedometer-needle::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fbbf24;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+        }
+
+        .speedometer-center {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fbbf24;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+        }
+
+        .speedometer-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 5px;
+            padding: 0 15px;
+            color: #64748b;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .speedometer-value {
+            text-align: center;
+            margin: 5px 0 10px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .speedometer-unit {
+            font-size: 0.6em;
+            color: #64748b;
+            margin-left: 2px;
+        }
+
         .kpi-values {
-            margin-top: 15px;
             display: flex;
             justify-content: space-around;
             background: rgba(51, 65, 85, 0.3);
             border-radius: 12px;
             padding: 12px 10px;
             border: 1px solid #334155;
+            margin: 10px 0;
         }
 
         .actual, .target {
@@ -307,7 +347,7 @@
         }
 
         .actual .label, .target .label {
-            font-size: 0.75em;
+            font-size: 0.7em;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -315,13 +355,13 @@
         }
 
         .actual .value {
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-weight: bold;
             color: #fbbf24;
         }
 
         .target .value {
-            font-size: 1.3em;
+            font-size: 1.1em;
             color: #94a3b8;
         }
 
@@ -329,15 +369,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 15px;
-            padding-top: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
             border-top: 1px solid #334155;
         }
 
         .status {
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -363,9 +403,9 @@
 
         .gap {
             font-weight: 600;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.85em;
+            font-size: 0.8em;
         }
 
         .gap.positive {
@@ -410,9 +450,6 @@
             color: #fbbf24;
             font-weight: 600;
             border-bottom: 2px solid #fbbf24;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         td {
@@ -432,7 +469,6 @@
         .score-highlight {
             font-weight: bold;
             color: #fbbf24;
-            font-size: 1.1em;
         }
 
         .total-score-card {
@@ -452,7 +488,6 @@
             font-size: 3em;
             display: block;
             color: #fbbf24;
-            margin-top: 5px;
         }
 
         .footer {
@@ -465,21 +500,6 @@
         .footer a {
             color: #fbbf24;
             text-decoration: none;
-            font-weight: 600;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Loading animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .loading {
-            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
@@ -488,7 +508,7 @@
         <!-- Header -->
         <div class="header">
             <h1>📊 KPI Performance Dashboard</h1>
-            <p>Real-time performance monitoring with speed meters</p>
+            <p>Real-time performance monitoring with speedometers</p>
             
             <!-- Hidden URL input - value preserved for functionality -->
             <div class="sheet-url">
@@ -529,7 +549,7 @@
             </div>
         </div>
 
-        <!-- KPI Grid with Gauges -->
+        <!-- KPI Grid with Speedometers -->
         <div class="kpi-grid" id="kpiGrid"></div>
 
         <!-- Detailed Table -->
@@ -581,10 +601,10 @@
         
         // Sample data
         const SAMPLE_DATA = {
-            AHT: 237,
-            IC: 93.13,
-            QA: 91.04,
-            Gauge: 95.78,
+            AHT: 227,
+            IC: 97.53,
+            QA: 90.26,
+            Gauge: 97.67,
             RSAT: 80.33,
             FCR: 88.64,
             Cancellation: 92.85,
@@ -629,8 +649,6 @@
                 localStorage.setItem('sheetUrl', url);
                 showSuccess('URL saved! Loading data...');
                 loadSheetData();
-            } else {
-                showError('Please paste your Google Sheet URL');
             }
         }
 
@@ -778,21 +796,31 @@
             }
         }
 
-        // Generate SVG gauge
-        function generateGauge(percentage, status, value, unit) {
-            const dashOffset = 377 - (377 * percentage / 100);
-            let fillClass = 'good';
+        // Generate speedometer with needle
+        function generateSpeedometer(percentage, status, value, unit) {
+            // Calculate needle rotation angle (-90deg to +90deg, where 0% = -90deg, 100% = +90deg)
+            const angle = -90 + (percentage * 1.8); // 1.8 = 180/100
             
+            let fillClass = 'good';
             if (status.includes('FAILED') || status.includes('HIGH RISK')) fillClass = 'bad';
             else if (status.includes('BEHIND')) fillClass = 'warning';
             
             return `
-                <div class="gauge-container">
-                    <svg class="gauge-svg" width="160" height="160" viewBox="0 0 160 160">
-                        <circle class="gauge-bg" cx="80" cy="80" r="60" />
-                        <circle class="gauge-fill ${fillClass}" cx="80" cy="80" r="60" style="stroke-dashoffset: ${dashOffset};" />
+                <div class="speedometer-container">
+                    <svg class="speedometer-svg" viewBox="0 0 200 100">
+                        <!-- Background arc (half circle) -->
+                        <path d="M30,80 A70,70 0 0,1 170,80" class="speedometer-bg" />
+                        <!-- Colored arc based on percentage -->
+                        <path d="M30,80 A70,70 0 0,1 ${30 + (140 * percentage/100)},80" class="speedometer-fill ${fillClass}" />
                     </svg>
-                    <div class="gauge-value">${value}<span class="gauge-unit">${unit}</span></div>
+                    <div class="speedometer-needle" style="transform: translateX(-50%) rotate(${angle}deg);"></div>
+                    <div class="speedometer-center"></div>
+                    <div class="speedometer-labels">
+                        <span>0</span>
+                        <span>50</span>
+                        <span>100</span>
+                    </div>
+                    <div class="speedometer-value">${value}<span class="speedometer-unit">${unit}</span></div>
                 </div>
             `;
         }
@@ -893,7 +921,7 @@
                     dailyNeed = gap > 0 ? `${(gap/15).toFixed(2)}%/day` : 'On track';
                 }
 
-                // Calculate percentage for gauge
+                // Calculate percentage for speedometer
                 let percentage = 100;
                 if (kpi === 'AHT') {
                     percentage = actual <= 240 ? 100 : Math.max(0, (240 / actual) * 100);
@@ -911,7 +939,7 @@
                     percentage = Math.min(100, (actual / target) * 100);
                 }
 
-                const gaugeHtml = generateGauge(percentage, status, actual, config.unit);
+                const speedometerHtml = generateSpeedometer(percentage, status, actual, config.unit);
 
                 const cardClass = kpi === 'ZTP' ? 'ztp' : (kpi === 'AHT' ? 'aht' : '');
                 kpiGridHtml += `
@@ -920,14 +948,14 @@
                             <span class="kpi-name">${kpi} ${kpi === 'AHT' ? '↓' : ''}</span>
                             <span class="kpi-weight">${weight}%</span>
                         </div>
-                        ${gaugeHtml}
+                        ${speedometerHtml}
                         <div class="kpi-values">
                             <div class="actual">
-                                <div class="label">Actual</div>
+                                <div class="label">ACTUAL</div>
                                 <div class="value">${actual}${config.unit}</div>
                             </div>
                             <div class="target">
-                                <div class="label">Target</div>
+                                <div class="label">TARGET</div>
                                 <div class="value">${targetDisplay}</div>
                             </div>
                         </div>
