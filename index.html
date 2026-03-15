@@ -234,6 +234,21 @@
             stroke-linecap: round;
         }
 
+        .speedometer-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .speedometer-fill.good {
+            stroke: #10b981;
+        }
+
+        .speedometer-fill.bad {
+            stroke: #ef4444;
+        }
+
         .speedometer-scale {
             position: absolute;
             bottom: 5px;
@@ -493,7 +508,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 KPI Performance Dashboard</h1>
-            <p>Dual-needle speedometer - Green (Target) vs Gold/Red (Actual)</p>
+            <p>Dual-needle speedometer with filled arcs</p>
             
             <div class="sheet-url">
                 <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo0NdiOJQOm3adKz8fPwp77X8cdfPJRfHP7RcZN7adiAFQqoJeMcAU7QOXGvMJwOkbDeAwZuIiiStm/pub?output=csv">
@@ -580,8 +595,8 @@
             IC: 97.53,
             QA: 90.26,
             Gauge: 97.67,
-            RSAT: 80.33,
-            FCR: 88.64,
+            RSAT: 81.5,
+            FCR: 87.48,
             Cancellation: 92.85,
             MU: 94.33,
             ZTP: 1
@@ -720,21 +735,34 @@
             }
         }
 
-        function generateDualNeedleSpeedometer(actualPercentage, targetPercentage, status) {
+        function generateDualNeedleSpeedometer(actualPercentage, targetPercentage, isBelowTarget) {
             const targetAngle = -90 + (100 * 1.8);
             const actualAngle = -90 + (actualPercentage * 1.8);
             
-            const isBelowTarget = actualPercentage < targetPercentage;
-            const needleClass = isBelowTarget ? 'actual-needle below-target' : 'actual-needle';
+            // Calculate the arc path - from leftmost (0%) to actual percentage
+            const startX = 30;
+            const startY = 90;
+            const radius = 80;
+            const endX = 30 + (160 * actualPercentage / 100);
+            const endY = 90 - (Math.sin(Math.PI * actualPercentage / 100) * radius * 0.5); // Simplified arc calculation
+            
+            const fillClass = isBelowTarget ? 'bad' : 'good';
             
             return `
                 <div class="speedometer-container">
                     <svg class="speedometer-svg" viewBox="0 0 220 120">
-                        <path d="M30,90 A80,80 0 0,1 190,90" class="speedometer-bg" stroke="#334155" fill="none" stroke-width="14"/>
+                        <!-- Background arc -->
+                        <path d="M30,90 A80,80 0 0,1 190,90" class="speedometer-bg" fill="none" />
+                        <!-- Filled arc up to actual percentage -->
+                        <path d="M30,90 A80,80 0 0,1 ${30 + (160 * actualPercentage / 100)},90" 
+                              class="speedometer-fill ${fillClass}" 
+                              fill="none" 
+                              stroke-dashoffset="0" 
+                              stroke-dasharray="251.2" />
                     </svg>
                     <div class="needle-container">
                         <div class="needle target-needle" style="transform: translateX(-50%) rotate(${targetAngle}deg);"></div>
-                        <div class="needle ${needleClass}" style="transform: translateX(-50%) rotate(${actualAngle}deg);"></div>
+                        <div class="needle actual-needle ${isBelowTarget ? 'below-target' : ''}" style="transform: translateX(-50%) rotate(${actualAngle}deg);"></div>
                         <div class="needle-center"></div>
                     </div>
                     <div class="speedometer-scale">
@@ -776,20 +804,24 @@
                 else if (kpi === 'ZTP') { targetDisplay = '0%'; targetValue = 0; }
                 
                 let gap, isGood, status, statusClass;
+                let isBelowTarget = false;
                 
                 if (kpi === 'AHT') {
                     gap = actual - 240;
                     isGood = actual <= 240;
+                    isBelowTarget = !isGood;
                     status = isGood ? 'GOOD' : 'HIGH RISK';
                     statusClass = isGood ? 'good' : 'bad';
                 } else if (kpi === 'ZTP') {
                     isGood = actual === 0;
+                    isBelowTarget = !isGood;
                     gap = actual;
                     status = isGood ? 'GOOD' : 'FAILED';
                     statusClass = isGood ? 'good' : 'bad';
                 } else {
                     gap = targetValue - actual;
                     isGood = actual >= targetValue;
+                    isBelowTarget = !isGood;
                     status = isGood ? 'ON TRACK' : 'BEHIND';
                     statusClass = isGood ? 'good' : 'bad';
                 }
@@ -838,7 +870,7 @@
                     actualPercentage = Math.min(100, (actual / targetValue) * 100);
                 }
 
-                const speedometerHtml = generateDualNeedleSpeedometer(actualPercentage, 100, status);
+                const speedometerHtml = generateDualNeedleSpeedometer(actualPercentage, 100, isBelowTarget);
 
                 const cardClass = kpi === 'ZTP' ? 'ztp' : (kpi === 'AHT' ? 'aht' : '');
                 kpiGridHtml += `
