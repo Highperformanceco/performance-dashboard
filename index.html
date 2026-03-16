@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPI Performance Dashboard ✨ Animated</title>
+    <title>KPI Performance Dashboard 🌬️ Breathing Edition</title>
     <style>
         * {
             margin: 0;
@@ -83,6 +83,52 @@
             100% { opacity: 1; }
         }
 
+        /* ========== BREATHING ANIMATIONS ========== */
+        @keyframes breathe {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 15px 30px rgba(59, 130, 246, 0.15);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            }
+        }
+
+        @keyframes gentleBreathe {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.01);
+                opacity: 0.95;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes statusBreathe {
+            0% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% {
+                transform: scale(1.05);
+                filter: brightness(1.1);
+            }
+            100% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+        }
+
         /* Animated elements */
         .header {
             background: white;
@@ -96,6 +142,7 @@
             animation: slideIn 0.6s ease-out;
         }
 
+        /* Breathing cards */
         .summary-card {
             background: white;
             border-radius: 16px;
@@ -104,15 +151,16 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            animation: slideIn 0.6s ease-out;
+            animation: slideIn 0.6s ease-out, breathe 4s ease-in-out infinite;
             animation-fill-mode: both;
             transition: all 0.3s ease;
+            transform-origin: center;
         }
 
         .summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            animation: pulse 1s infinite;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
+            animation: breathe 2s ease-in-out infinite;
         }
 
         .summary-card:nth-child(1) { animation-delay: 0.1s; }
@@ -130,6 +178,7 @@
             animation: float 3s ease-in-out infinite;
         }
 
+        /* Breathing KPI cards */
         .kpi-card {
             background: white;
             border-radius: 16px;
@@ -139,11 +188,12 @@
             border-left: 4px solid transparent;
             width: 350px;
             flex-shrink: 0;
-            animation: slideIn 0.5s ease-out;
+            animation: slideIn 0.5s ease-out, breathe 4s ease-in-out infinite;
             animation-fill-mode: both;
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            transform-origin: center;
         }
 
         .kpi-card::before {
@@ -164,26 +214,10 @@
         .kpi-card:hover {
             transform: translateY(-5px) scale(1.02);
             box-shadow: 0 15px 30px rgba(59, 130, 246, 0.15);
-            animation: glow 2s infinite;
+            animation: breathe 2s ease-in-out infinite, glow 2s infinite;
         }
 
-        /* Racing progress bar */
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 12px;
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: white;
-            font-size: 0.8em;
-            font-weight: 500;
-            animation: raceBar 1.5s ease-out;
-        }
-
-        /* Winner trophy */
+        /* Breathing winner banner */
         .winner-announcement {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: white;
@@ -194,9 +228,10 @@
             align-items: center;
             gap: 15px;
             box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
-            animation: float 3s ease-in-out infinite, glow 2s infinite;
+            animation: float 3s ease-in-out infinite, breathe 3s ease-in-out infinite;
             position: relative;
             overflow: hidden;
+            transform-origin: center;
         }
 
         .winner-announcement::after {
@@ -215,7 +250,23 @@
             animation: winnerTrophy 2s infinite;
         }
 
-        /* Confetti effect for top performers */
+        /* Racing progress bar */
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.8em;
+            font-weight: 500;
+            animation: raceBar 1.5s ease-out;
+        }
+
+        /* Confetti effect */
         .confetti {
             position: absolute;
             width: 10px;
@@ -269,14 +320,107 @@
             animation: scrollPulse 2s infinite;
         }
 
-        /* Racing flag for top performer */
+        /* Racing flag */
         .racing-flag {
             display: inline-block;
             margin-left: 10px;
             animation: float 1s ease-in-out infinite;
         }
 
-        /* Keep all your existing styles below */
+        /* Breathing total score card */
+        .total-score-card {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            animation: float 3s ease-in-out infinite, breathe 3.5s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .total-score-card span {
+            font-size: 3em;
+            font-weight: 700;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* ========== BREATHING TABLE EFFECTS ========== */
+        .table tbody tr {
+            transition: all 0.3s ease;
+            transform-origin: left;
+        }
+
+        .table tbody tr:hover {
+            background: #f0f9ff;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            animation: gentleBreathe 2s ease-in-out infinite;
+        }
+
+        .table td .score-highlight {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .table tr:hover .score-highlight {
+            animation: statusBreathe 1.5s ease-in-out infinite;
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .table td .status {
+            transition: all 0.3s ease;
+            display: inline-block !important;
+        }
+
+        .table tr:hover .status {
+            animation: statusBreathe 1.5s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .table td .gap {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .table tr:hover .gap {
+            animation: statusBreathe 1.5s ease-in-out infinite;
+        }
+
+        .table td {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .table td:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            z-index: 10;
+        }
+
+        .table tr:hover td:first-child {
+            animation: gentleBreathe 2s ease-in-out infinite;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .table td:last-child {
+            transition: all 0.3s ease;
+        }
+
+        .table tr:hover td:last-child {
+            animation: gentleBreathe 2s ease-in-out infinite;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* Keep all your existing styles */
         .header h1 {
             color: #1e293b;
             font-size: 1.8em;
@@ -315,18 +459,6 @@
             box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
         }
 
-        .error-message, .success-message {
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: none;
-            font-weight: 500;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        /* Keep all your existing CSS from here... */
-        /* (I'll preserve all your original styling) */
-        
         .sheet-url { display: none; }
         .refresh-container { display: flex; gap: 10px; align-items: center; }
         .last-updated { color: #64748b; font-size: 0.85em; }
@@ -593,6 +725,27 @@
             color: #16a34a;
         }
 
+        .error-message, .success-message {
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
         .table-container {
             background: white;
             border-radius: 16px;
@@ -645,24 +798,6 @@
             color: #3b82f6;
         }
 
-        .total-score-card {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            padding: 25px;
-            border-radius: 16px;
-            text-align: center;
-            margin-top: 20px;
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .total-score-card span {
-            font-size: 3em;
-            font-weight: 700;
-            display: block;
-            margin-top: 5px;
-        }
-
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -676,7 +811,6 @@
             font-weight: 500;
         }
 
-        /* Confetti container */
         #confetti-container {
             position: fixed;
             top: 0;
@@ -825,7 +959,7 @@
         let autoScrollInterval = null;
         let isScrolling = true;
 
-        // Confetti function for celebrations
+        // Confetti function
         function createConfetti() {
             const container = document.getElementById('confetti-container');
             container.innerHTML = '';
@@ -840,7 +974,6 @@
                 confetti.style.animationDelay = Math.random() * 2 + 's';
                 container.appendChild(confetti);
                 
-                // Remove after animation
                 setTimeout(() => {
                     confetti.remove();
                 }, 5000);
@@ -881,7 +1014,7 @@
             document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
             showSuccess('Sample data loaded');
             startAutoScroll();
-            createConfetti(); // Celebrate!
+            createConfetti();
         }
 
         async function loadSheetData() {
@@ -923,7 +1056,7 @@
                 document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
                 showSuccess('Data loaded successfully!');
                 startAutoScroll();
-                createConfetti(); // Celebrate new data!
+                createConfetti();
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -982,7 +1115,6 @@
             }
         }
 
-        // Auto-scroll functionality
         function startAutoScroll() {
             if (autoScrollInterval) clearInterval(autoScrollInterval);
             
@@ -1026,7 +1158,6 @@
                     e.stopPropagation();
                     stopAutoScroll();
                     
-                    // Add a little bounce effect when clicked
                     this.style.transform = 'scale(0.98)';
                     setTimeout(() => {
                         this.style.transform = '';
@@ -1046,7 +1177,6 @@
             let kpiGridHtml = '';
             let tableRows = '';
 
-            // Track top performer for winner banner
             let maxScore = -Infinity;
             let topPerformer = '';
 
@@ -1131,7 +1261,6 @@
                     dailyNeed = gap > 0 ? `${(gap/15).toFixed(2)}%/day` : 'On track';
                 }
 
-                // Calculate percentage of target achieved
                 let percentageOfTarget = 100;
                 if (kpi === 'AHT') {
                     percentageOfTarget = (targetValue / actual) * 100;
@@ -1145,7 +1274,6 @@
 
                 const cardClass = kpi === 'ZTP' ? 'ztp' : (kpi === 'AHT' ? 'aht' : '');
                 
-                // Set CSS variable for animation
                 const style = `--target-width: ${percentageOfTarget}%;`;
                 
                 kpiGridHtml += `
@@ -1206,14 +1334,11 @@
                 `;
             });
 
-            // Update winner banner
             if (topPerformer) {
                 const winnerBanner = document.getElementById('winnerBanner');
                 const winnerText = document.getElementById('winnerText');
                 winnerText.innerHTML = `🏆 Today's Champion: ${topPerformer} with ${maxScore.toFixed(2)} points! 🏆`;
                 winnerBanner.style.display = 'flex';
-                
-                // Add some confetti for the winner
                 createConfetti();
             }
 
@@ -1233,7 +1358,6 @@
                 document.getElementById('priorityDetail').innerHTML = 'no gaps detected';
             }
             
-            // Add click listeners to cards
             setTimeout(addCardClickListeners, 100);
         }
 
@@ -1244,7 +1368,6 @@
                 loadSheetData();
             } else {
                 useSampleData();
-                // Add initial confetti
                 setTimeout(createConfetti, 1000);
             }
         };
