@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPI Performance Dashboard 🌬️ Breathing Edition</title>
+    <title>KPI Performance Dashboard 🌬️ Enhanced Breathing</title>
     <style>
         * {
             margin: 0;
@@ -32,7 +32,7 @@
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
 
@@ -49,7 +49,7 @@
 
         @keyframes glow {
             0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 0 25px 8px rgba(59, 130, 246, 0.3); }
             100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
         }
 
@@ -71,9 +71,9 @@
 
         @keyframes winnerTrophy {
             0% { transform: rotate(-10deg) scale(1); }
-            25% { transform: rotate(10deg) scale(1.2); }
-            50% { transform: rotate(-5deg) scale(1.1); }
-            75% { transform: rotate(5deg) scale(1.15); }
+            25% { transform: rotate(10deg) scale(1.3); }
+            50% { transform: rotate(-5deg) scale(1.2); }
+            75% { transform: rotate(5deg) scale(1.25); }
             100% { transform: rotate(0deg) scale(1); }
         }
 
@@ -83,15 +83,15 @@
             100% { opacity: 1; }
         }
 
-        /* ========== BREATHING ANIMATIONS ========== */
+        /* ========== ENHANCED BREATHING ANIMATIONS ========== */
         @keyframes breathe {
             0% {
                 transform: scale(1);
                 box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             }
             50% {
-                transform: scale(1.02);
-                box-shadow: 0 15px 30px rgba(59, 130, 246, 0.15);
+                transform: scale(1.05);
+                box-shadow: 0 20px 30px rgba(59, 130, 246, 0.25);
             }
             100% {
                 transform: scale(1);
@@ -105,8 +105,8 @@
                 opacity: 1;
             }
             50% {
-                transform: scale(1.01);
-                opacity: 0.95;
+                transform: scale(1.03);
+                opacity: 0.92;
             }
             100% {
                 transform: scale(1);
@@ -120,8 +120,8 @@
                 filter: brightness(1);
             }
             50% {
-                transform: scale(1.05);
-                filter: brightness(1.1);
+                transform: scale(1.12);
+                filter: brightness(1.2);
             }
             100% {
                 transform: scale(1);
@@ -142,7 +142,7 @@
             animation: slideIn 0.6s ease-out;
         }
 
-        /* Breathing cards */
+        /* Breathing cards - faster and stronger */
         .summary-card {
             background: white;
             border-radius: 16px;
@@ -151,16 +151,16 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            animation: slideIn 0.6s ease-out, breathe 4s ease-in-out infinite;
+            animation: slideIn 0.6s ease-out, breathe 2.5s ease-in-out infinite;
             animation-fill-mode: both;
             transition: all 0.3s ease;
             transform-origin: center;
         }
 
         .summary-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
-            animation: breathe 2s ease-in-out infinite;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 30px rgba(59, 130, 246, 0.25);
+            animation: breathe 1.5s ease-in-out infinite;
         }
 
         .summary-card:nth-child(1) { animation-delay: 0.1s; }
@@ -175,10 +175,10 @@
             align-items: center;
             justify-content: center;
             font-size: 1.5em;
-            animation: float 3s ease-in-out infinite;
+            animation: float 2.5s ease-in-out infinite;
         }
 
-        /* Breathing KPI cards */
+        /* Breathing KPI cards - faster */
         .kpi-card {
             background: white;
             border-radius: 16px;
@@ -188,7 +188,7 @@
             border-left: 4px solid transparent;
             width: 350px;
             flex-shrink: 0;
-            animation: slideIn 0.5s ease-out, breathe 4s ease-in-out infinite;
+            animation: slideIn 0.5s ease-out, breathe 2.5s ease-in-out infinite;
             animation-fill-mode: both;
             cursor: pointer;
             position: relative;
@@ -212,12 +212,12 @@
         }
 
         .kpi-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.15);
-            animation: breathe 2s ease-in-out infinite, glow 2s infinite;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 30px rgba(59, 130, 246, 0.2);
+            animation: breathe 1.5s ease-in-out infinite, glow 1.5s infinite;
         }
 
-        /* Breathing winner banner */
+        /* Breathing winner banner - faster */
         .winner-announcement {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: white;
@@ -228,7 +228,7 @@
             align-items: center;
             gap: 15px;
             box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
-            animation: float 3s ease-in-out infinite, breathe 3s ease-in-out infinite;
+            animation: float 2.5s ease-in-out infinite, breathe 2s ease-in-out infinite;
             position: relative;
             overflow: hidden;
             transform-origin: center;
@@ -242,12 +242,12 @@
             width: 200%;
             height: 200%;
             background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shine 3s infinite;
+            animation: shine 2.5s infinite;
         }
 
         .winner-trophy {
             font-size: 2.5em;
-            animation: winnerTrophy 2s infinite;
+            animation: winnerTrophy 1.5s infinite;
         }
 
         /* Racing progress bar */
@@ -263,7 +263,7 @@
             color: white;
             font-size: 0.8em;
             font-weight: 500;
-            animation: raceBar 1.5s ease-out;
+            animation: raceBar 1.2s ease-out;
         }
 
         /* Confetti effect */
@@ -303,13 +303,14 @@
             border-color: #3b82f6;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+            animation: pulse 0.5s ease-in-out;
         }
 
         .scroll-btn.active {
             background: #3b82f6;
             color: white;
             border-color: #3b82f6;
-            animation: pulse 2s infinite;
+            animation: pulse 1.5s infinite;
         }
 
         .auto-scroll-notice {
@@ -317,17 +318,17 @@
             font-size: 0.9em;
             font-style: italic;
             margin-left: 15px;
-            animation: scrollPulse 2s infinite;
+            animation: scrollPulse 1.5s infinite;
         }
 
         /* Racing flag */
         .racing-flag {
             display: inline-block;
             margin-left: 10px;
-            animation: float 1s ease-in-out infinite;
+            animation: float 0.8s ease-in-out infinite;
         }
 
-        /* Breathing total score card */
+        /* Breathing total score card - faster */
         .total-score-card {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             color: white;
@@ -336,7 +337,7 @@
             text-align: center;
             margin-top: 20px;
             box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-            animation: float 3s ease-in-out infinite, breathe 3.5s ease-in-out infinite;
+            animation: float 2.5s ease-in-out infinite, breathe 2.2s ease-in-out infinite;
             transform-origin: center;
         }
 
@@ -345,9 +346,10 @@
             font-weight: 700;
             display: block;
             margin-top: 5px;
+            animation: statusBreathe 2s ease-in-out infinite;
         }
 
-        /* ========== BREATHING TABLE EFFECTS ========== */
+        /* ========== ENHANCED TABLE BREATHING ========== */
         .table tbody tr {
             transition: all 0.3s ease;
             transform-origin: left;
@@ -355,20 +357,22 @@
 
         .table tbody tr:hover {
             background: #f0f9ff;
-            transform: scale(1.01);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            animation: gentleBreathe 2s ease-in-out infinite;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            animation: gentleBreathe 1.5s ease-in-out infinite;
         }
 
         .table td .score-highlight {
             transition: all 0.3s ease;
             display: inline-block;
+            font-weight: bold;
         }
 
         .table tr:hover .score-highlight {
-            animation: statusBreathe 1.5s ease-in-out infinite;
+            animation: statusBreathe 1s ease-in-out infinite;
             color: #2563eb;
-            font-weight: 700;
+            font-weight: 800;
+            transform-origin: center;
         }
 
         .table td .status {
@@ -377,17 +381,20 @@
         }
 
         .table tr:hover .status {
-            animation: statusBreathe 1.5s ease-in-out infinite;
+            animation: statusBreathe 1s ease-in-out infinite;
             transform-origin: center;
+            box-shadow: 0 0 10px currentColor;
         }
 
         .table td .gap {
             transition: all 0.3s ease;
             display: inline-block;
+            font-weight: 600;
         }
 
         .table tr:hover .gap {
-            animation: statusBreathe 1.5s ease-in-out infinite;
+            animation: statusBreathe 1s ease-in-out infinite;
+            transform-origin: center;
         }
 
         .table td {
@@ -396,16 +403,16 @@
         }
 
         .table td:hover {
-            background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.02);
-            font-weight: 600;
+            background: rgba(59, 130, 246, 0.15);
+            transform: scale(1.03);
+            font-weight: 700;
             border-radius: 8px;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
             z-index: 10;
         }
 
         .table tr:hover td:first-child {
-            animation: gentleBreathe 2s ease-in-out infinite;
+            animation: gentleBreathe 1.5s ease-in-out infinite;
             font-weight: 700;
             color: #2563eb;
         }
@@ -415,12 +422,12 @@
         }
 
         .table tr:hover td:last-child {
-            animation: gentleBreathe 2s ease-in-out infinite;
+            animation: gentleBreathe 1.5s ease-in-out infinite;
             color: #059669;
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        /* Keep all your existing styles */
+        /* Keep all your existing styles below */
         .header h1 {
             color: #1e293b;
             font-size: 1.8em;
@@ -964,7 +971,7 @@
             const container = document.getElementById('confetti-container');
             container.innerHTML = '';
             
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 70; i++) {
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
                 confetti.style.setProperty('--color', `hsl(${Math.random() * 360}, 100%, 50%)`);
@@ -1158,7 +1165,7 @@
                     e.stopPropagation();
                     stopAutoScroll();
                     
-                    this.style.transform = 'scale(0.98)';
+                    this.style.transform = 'scale(0.95)';
                     setTimeout(() => {
                         this.style.transform = '';
                     }, 200);
