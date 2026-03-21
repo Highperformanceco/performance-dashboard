@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPI Performance Dashboard 🌬️ Enhanced Breathing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>KPI Performance Dashboard | HP</title>
     <style>
         * {
             margin: 0;
@@ -13,14 +13,60 @@
         }
 
         body {
-            background: #f3f4f6;
+            background: #eef2f5;
             padding: 20px;
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ========== GLOSSY FLOATING BUBBLES ========== */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: riseUpwards linear infinite;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.1), inset 5px 5px 15px rgba(255, 255, 255, 0.5), 0 0 15px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(2px);
+        }
+
+        @keyframes riseUpwards {
+            0% {
+                transform: translateY(100vh) scale(0.3);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.8;
+            }
+            85% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        /* Background Grid - Subtle */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.02) 0px, rgba(0, 0, 0, 0.02) 1px, transparent 1px, transparent 60px),
+                repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0px, rgba(0, 0, 0, 0.02) 1px, transparent 1px, transparent 60px);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
             max-width: 100%;
             margin: 0 auto;
+            position: relative;
+            z-index: 2;
         }
 
         /* ========== ANIMATIONS ========== */
@@ -48,9 +94,9 @@
         }
 
         @keyframes glow {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 0 25px 8px rgba(59, 130, 246, 0.3); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            0% { box-shadow: 0 0 0 0 rgba(160, 90, 255, 0.4); }
+            50% { box-shadow: 0 0 25px 8px rgba(160, 90, 255, 0.3); }
+            100% { box-shadow: 0 0 0 0 rgba(160, 90, 255, 0.4); }
         }
 
         @keyframes shine {
@@ -91,7 +137,7 @@
             }
             50% {
                 transform: scale(1.05);
-                box-shadow: 0 20px 30px rgba(59, 130, 246, 0.25);
+                box-shadow: 0 20px 30px rgba(160, 90, 255, 0.25);
             }
             100% {
                 transform: scale(1);
@@ -131,7 +177,8 @@
 
         /* Animated elements */
         .header {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 25px 30px;
             margin-bottom: 25px;
@@ -140,11 +187,13 @@
             justify-content: space-between;
             align-items: center;
             animation: slideIn 0.6s ease-out;
+            border: 1px solid rgba(160, 90, 255, 0.2);
         }
 
-        /* Breathing cards - faster and stronger */
+        /* Breathing cards */
         .summary-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -155,11 +204,12 @@
             animation-fill-mode: both;
             transition: all 0.3s ease;
             transform-origin: center;
+            border: 1px solid rgba(160, 90, 255, 0.2);
         }
 
         .summary-card:hover {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 30px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 20px 30px rgba(160, 90, 255, 0.25);
             animation: breathe 1.5s ease-in-out infinite;
         }
 
@@ -178,9 +228,10 @@
             animation: float 2.5s ease-in-out infinite;
         }
 
-        /* Breathing KPI cards - faster */
+        /* Breathing KPI cards */
         .kpi-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -194,6 +245,7 @@
             position: relative;
             overflow: hidden;
             transform-origin: center;
+            border: 1px solid rgba(160, 90, 255, 0.2);
         }
 
         .kpi-card::before {
@@ -213,11 +265,11 @@
 
         .kpi-card:hover {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 30px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 20px 30px rgba(160, 90, 255, 0.2);
             animation: breathe 1.5s ease-in-out infinite, glow 1.5s infinite;
         }
 
-        /* Breathing winner banner - faster */
+        /* Breathing winner banner */
         .winner-announcement {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: white;
@@ -298,18 +350,18 @@
         }
 
         .scroll-btn:hover {
-            background: #3b82f6;
+            background: #A05AFF;
             color: white;
-            border-color: #3b82f6;
+            border-color: #A05AFF;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 5px 15px rgba(160, 90, 255, 0.4);
             animation: pulse 0.5s ease-in-out;
         }
 
         .scroll-btn.active {
-            background: #3b82f6;
+            background: #A05AFF;
             color: white;
-            border-color: #3b82f6;
+            border-color: #A05AFF;
             animation: pulse 1.5s infinite;
         }
 
@@ -328,15 +380,15 @@
             animation: float 0.8s ease-in-out infinite;
         }
 
-        /* Breathing total score card - faster */
+        /* Breathing total score card */
         .total-score-card {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #A05AFF, #1BCFB4);
             color: white;
             padding: 25px;
             border-radius: 16px;
             text-align: center;
             margin-top: 20px;
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 20px rgba(160, 90, 255, 0.3);
             animation: float 2.5s ease-in-out infinite, breathe 2.2s ease-in-out infinite;
             transform-origin: center;
         }
@@ -349,14 +401,14 @@
             animation: statusBreathe 2s ease-in-out infinite;
         }
 
-        /* ========== ENHANCED TABLE BREATHING ========== */
+        /* Enhanced table breathing */
         .table tbody tr {
             transition: all 0.3s ease;
             transform-origin: left;
         }
 
         .table tbody tr:hover {
-            background: #f0f9ff;
+            background: rgba(160, 90, 255, 0.1);
             transform: scale(1.02);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             animation: gentleBreathe 1.5s ease-in-out infinite;
@@ -370,7 +422,7 @@
 
         .table tr:hover .score-highlight {
             animation: statusBreathe 1s ease-in-out infinite;
-            color: #2563eb;
+            color: #A05AFF;
             font-weight: 800;
             transform-origin: center;
         }
@@ -403,18 +455,18 @@
         }
 
         .table td:hover {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(160, 90, 255, 0.15);
             transform: scale(1.03);
             font-weight: 700;
             border-radius: 8px;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 0 3px rgba(160, 90, 255, 0.4);
             z-index: 10;
         }
 
         .table tr:hover td:first-child {
             animation: gentleBreathe 1.5s ease-in-out infinite;
             font-weight: 700;
-            color: #2563eb;
+            color: #A05AFF;
         }
 
         .table td:last-child {
@@ -423,21 +475,21 @@
 
         .table tr:hover td:last-child {
             animation: gentleBreathe 1.5s ease-in-out infinite;
-            color: #059669;
+            color: #1BCFB4;
             font-weight: 700;
         }
 
-        /* Keep all your existing styles below */
+        /* Keep all your existing styles */
         .header h1 {
-            color: #1e293b;
+            color: #2d3a45;
             font-size: 1.8em;
             font-weight: 600;
         }
 
         .header h1 span {
-            color: #3b82f6;
+            color: #A05AFF;
             font-size: 0.5em;
-            background: #eff6ff;
+            background: rgba(160, 90, 255, 0.1);
             padding: 4px 10px;
             border-radius: 20px;
             margin-left: 10px;
@@ -445,7 +497,7 @@
         }
 
         .btn-refresh {
-            background: #3b82f6;
+            background: #A05AFF;
             color: white;
             border: none;
             padding: 10px 24px;
@@ -457,13 +509,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 6px rgba(160, 90, 255, 0.2);
         }
 
         .btn-refresh:hover {
-            background: #2563eb;
+            background: #8A3FE0;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 6px 12px rgba(160, 90, 255, 0.3);
         }
 
         .sheet-url { display: none; }
@@ -487,7 +539,7 @@
         .summary-content .value {
             font-size: 1.8em;
             font-weight: 600;
-            color: #1e293b;
+            color: #2d3a45;
             line-height: 1;
             margin-bottom: 5px;
         }
@@ -507,7 +559,7 @@
         .scroll-title {
             font-size: 1.2em;
             font-weight: 600;
-            color: #1e293b;
+            color: #2d3a45;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -543,7 +595,7 @@
         }
 
         .kpi-scroll-container::-webkit-scrollbar-thumb {
-            background: #3b82f6;
+            background: #A05AFF;
             border-radius: 10px;
         }
 
@@ -573,7 +625,7 @@
         .kpi-name {
             font-size: 1.2em;
             font-weight: 600;
-            color: #1e293b;
+            color: #2d3a45;
         }
 
         .kpi-badge {
@@ -586,8 +638,8 @@
         }
 
         .kpi-weight {
-            background: #e0f2fe;
-            color: #0284c7;
+            background: rgba(160, 90, 255, 0.15);
+            color: #A05AFF;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85em;
@@ -615,7 +667,7 @@
 
         .progress-value {
             font-weight: 600;
-            color: #1e293b;
+            color: #2d3a45;
         }
 
         .progress-bar-container {
@@ -661,7 +713,7 @@
             gap: 15px;
             margin: 15px 0;
             padding: 15px;
-            background: #f8fafc;
+            background: rgba(0, 0, 0, 0.02);
             border-radius: 12px;
         }
 
@@ -680,7 +732,7 @@
         .detail-value {
             font-size: 1.3em;
             font-weight: 600;
-            color: #1e293b;
+            color: #2d3a45;
         }
 
         .detail-unit {
@@ -754,16 +806,18 @@
         }
 
         .table-container {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             overflow-x: auto;
             margin-bottom: 25px;
+            border: 1px solid rgba(160, 90, 255, 0.2);
         }
 
         .table-container h3 {
-            color: #1e293b;
+            color: #2d3a45;
             margin-bottom: 20px;
             font-size: 1.2em;
             font-weight: 600;
@@ -777,7 +831,7 @@
         th {
             text-align: left;
             padding: 12px 10px;
-            background: #f8fafc;
+            background: rgba(0, 0, 0, 0.02);
             color: #475569;
             font-weight: 600;
             font-size: 0.85em;
@@ -789,7 +843,7 @@
         td {
             padding: 12px 10px;
             border-bottom: 1px solid #e2e8f0;
-            color: #1e293b;
+            color: #2d3a45;
         }
 
         .ztp-row {
@@ -802,7 +856,7 @@
 
         .score-highlight {
             font-weight: bold;
-            color: #3b82f6;
+            color: #A05AFF;
         }
 
         .footer {
@@ -813,7 +867,7 @@
         }
 
         .footer a {
-            color: #3b82f6;
+            color: #A05AFF;
             text-decoration: none;
             font-weight: 500;
         }
@@ -830,8 +884,38 @@
     </style>
 </head>
 <body>
-    <!-- Confetti container -->
-    <div id="confetti-container"></div>
+    <!-- Background Grid -->
+    <div class="grid-overlay"></div>
+
+    <!-- Glossy Floating Bubbles -->
+    <script>
+        function createBubbles() {
+            const colors = [
+                { base: '#A05AFF', light: '#C88CFF', dark: '#7A3ECC' },  // Purple
+                { base: '#1BCFB4', light: '#5EFFE0', dark: '#0F9F8A' },  // Teal
+                { base: '#FE9496', light: '#FFC0C2', dark: '#E06A6C' },  // Coral
+                { base: '#4BCBEB', light: '#8EFFFF', dark: '#2A9BBF' }   // Blue
+            ];
+            
+            for (let i = 0; i < 50; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 140 + 30;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = Math.random() * 12 + 7 + 's';
+                bubble.style.animationDelay = Math.random() * 25 + 's';
+                
+                const colorSet = colors[Math.floor(Math.random() * colors.length)];
+                bubble.style.background = `radial-gradient(circle at 30% 35%, ${colorSet.light}, ${colorSet.base}, ${colorSet.dark})`;
+                bubble.style.boxShadow = `inset -5px -5px 15px rgba(0, 0, 0, 0.15), inset 8px 8px 20px rgba(255, 255, 255, 0.6), 0 5px 15px rgba(0, 0, 0, 0.1)`;
+                
+                document.body.appendChild(bubble);
+            }
+        }
+        createBubbles();
+    </script>
 
     <div class="container">
         <div class="header">
@@ -909,9 +993,9 @@
 
         <div class="table-container">
             <h3>📋 Detailed Analysis</h3>
-            <table>
+             <table>
                 <thead>
-                    <tr>
+                     <tr>
                         <th>KPI</th>
                         <th>Actual</th>
                         <th>Target</th>
@@ -920,10 +1004,10 @@
                         <th>Status</th>
                         <th>Score</th>
                         <th>Daily Need</th>
-                    </tr>
+                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-            </table>
+             </table>
         </div>
 
         <div class="total-score-card">
@@ -1329,7 +1413,7 @@
                 const rowClass = kpi === 'ZTP' && !isGood ? 'ztp-row' : (kpi === 'AHT' && !isGood ? 'aht-row' : '');
                 tableRows += `
                     <tr class="${rowClass}">
-                        <td><strong>${kpi}</strong></td>
+                        <tr><strong>${kpi}</strong></td>
                         <td>${actual}${config.unit}</td>
                         <td>${targetDisplay}</td>
                         <td>${weight}%</td>
@@ -1337,7 +1421,7 @@
                         <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span></td>
                         <td class="score-highlight">${score.toFixed(3)} / ${weight}</td>
                         <td>${dailyNeed}</td>
-                    </tr>
+                     </tr>
                 `;
             });
 
