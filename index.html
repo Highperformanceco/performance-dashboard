@@ -887,6 +887,9 @@
     <!-- Background Grid -->
     <div class="grid-overlay"></div>
 
+    <!-- Confetti Container -->
+    <div id="confetti-container"></div>
+
     <!-- Glossy Floating Bubbles -->
     <script>
         function createBubbles() {
@@ -993,9 +996,9 @@
 
         <div class="table-container">
             <h3>📋 Detailed Analysis</h3>
-             <table>
+            <table>
                 <thead>
-                     <tr>
+                    <tr>
                         <th>KPI</th>
                         <th>Actual</th>
                         <th>Target</th>
@@ -1004,10 +1007,10 @@
                         <th>Status</th>
                         <th>Score</th>
                         <th>Daily Need</th>
-                     </tr>
+                    </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-             </table>
+            </table>
         </div>
 
         <div class="total-score-card">
@@ -1050,9 +1053,11 @@
         let autoScrollInterval = null;
         let isScrolling = true;
 
-        // Confetti function
+        // Confetti function - fixed to check if container exists
         function createConfetti() {
             const container = document.getElementById('confetti-container');
+            if (!container) return;
+            
             container.innerHTML = '';
             
             for (let i = 0; i < 70; i++) {
@@ -1066,54 +1071,54 @@
                 container.appendChild(confetti);
                 
                 setTimeout(() => {
-                    confetti.remove();
+                    if (confetti && confetti.remove) confetti.remove();
                 }, 5000);
             }
         }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => errorDiv.style.display = 'none', 5000);
+            if (errorDiv) {
+                errorDiv.innerHTML = message;
+                errorDiv.style.display = 'block';
+                setTimeout(() => errorDiv.style.display = 'none', 5000);
+            }
         }
 
         function showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
-            successDiv.innerHTML = message;
-            successDiv.style.display = 'block';
-            setTimeout(() => successDiv.style.display = 'none', 3000);
+            if (successDiv) {
+                successDiv.innerHTML = message;
+                successDiv.style.display = 'block';
+                setTimeout(() => successDiv.style.display = 'none', 3000);
+            }
         }
 
         function loadSettings() {
             const savedUrl = localStorage.getItem('sheetUrl');
-            if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
-        }
-
-        function saveAndLoad() {
-            const url = document.getElementById('sheetUrl').value;
-            if (url) {
-                localStorage.setItem('sheetUrl', url);
-                showSuccess('URL saved! Loading data...');
-                loadSheetData();
+            if (savedUrl && document.getElementById('sheetUrl')) {
+                document.getElementById('sheetUrl').value = savedUrl;
             }
         }
 
         function useSampleData() {
             currentData = { ...SAMPLE_DATA };
             updateDashboard();
-            document.getElementById('lastUpdated').innerHTML = '📊 Using sample data';
+            const lastUpdated = document.getElementById('lastUpdated');
+            if (lastUpdated) lastUpdated.innerHTML = '📊 Using sample data';
             showSuccess('Sample data loaded');
             startAutoScroll();
             createConfetti();
         }
 
         async function loadSheetData() {
-            const sheetUrl = document.getElementById('sheetUrl').value;
+            const sheetUrlInput = document.getElementById('sheetUrl');
+            const sheetUrl = sheetUrlInput ? sheetUrlInput.value : '';
             if (!sheetUrl) { useSampleData(); return; }
 
             try {
-                document.getElementById('lastUpdated').innerHTML = '🔄 Loading...';
+                const lastUpdated = document.getElementById('lastUpdated');
+                if (lastUpdated) lastUpdated.innerHTML = '🔄 Loading...';
                 
                 const proxyUrl = 'https://script.google.com/macros/s/AKfycbwgM29ujvLi5jJLvHOx3IiA3cxDZmuc2r34Rn5NKiyu8UdhckxsCAnxWu6HWDy2JLdu/exec';
                 const cacheBuster = '&_=' + new Date().getTime();
@@ -1144,14 +1149,15 @@
                 };
                 
                 updateDashboard();
-                document.getElementById('lastUpdated').innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
+                if (lastUpdated) lastUpdated.innerHTML = `✅ Updated: ${new Date().toLocaleString()}`;
                 showSuccess('Data loaded successfully!');
                 startAutoScroll();
                 createConfetti();
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('lastUpdated').innerHTML = '❌ Error loading data';
+                const lastUpdated = document.getElementById('lastUpdated');
+                if (lastUpdated) lastUpdated.innerHTML = '❌ Error loading data';
                 showError(`Error: ${error.message}. Using sample data.`);
                 useSampleData();
             }
@@ -1210,12 +1216,18 @@
             if (autoScrollInterval) clearInterval(autoScrollInterval);
             
             const container = document.getElementById('kpiScrollContainer');
+            if (!container) return;
+            
             const maxScroll = container.scrollWidth - container.clientWidth;
             
             isScrolling = true;
-            document.getElementById('autoScrollNotice').innerHTML = '(Auto-scrolling • Click any tile to stop)';
-            document.getElementById('startBtn').classList.add('active');
-            document.getElementById('stopBtn').classList.remove('active');
+            const autoScrollNotice = document.getElementById('autoScrollNotice');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            if (autoScrollNotice) autoScrollNotice.innerHTML = '(Auto-scrolling • Click any tile to stop)';
+            if (startBtn) startBtn.classList.add('active');
+            if (stopBtn) stopBtn.classList.remove('active');
             
             autoScrollInterval = setInterval(() => {
                 if (!isScrolling) return;
@@ -1237,9 +1249,13 @@
                 autoScrollInterval = null;
             }
             isScrolling = false;
-            document.getElementById('autoScrollNotice').innerHTML = '(Scrolling stopped • Click Start to resume)';
-            document.getElementById('startBtn').classList.remove('active');
-            document.getElementById('stopBtn').classList.add('active');
+            const autoScrollNotice = document.getElementById('autoScrollNotice');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            if (autoScrollNotice) autoScrollNotice.innerHTML = '(Scrolling stopped • Click Start to resume)';
+            if (startBtn) startBtn.classList.remove('active');
+            if (stopBtn) stopBtn.classList.add('active');
         }
 
         function addCardClickListeners() {
@@ -1413,7 +1429,7 @@
                 const rowClass = kpi === 'ZTP' && !isGood ? 'ztp-row' : (kpi === 'AHT' && !isGood ? 'aht-row' : '');
                 tableRows += `
                     <tr class="${rowClass}">
-                        <tr><strong>${kpi}</strong></td>
+                        <td><strong>${kpi}</strong></td>
                         <td>${actual}${config.unit}</td>
                         <td>${targetDisplay}</td>
                         <td>${weight}%</td>
@@ -1421,32 +1437,42 @@
                         <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span></td>
                         <td class="score-highlight">${score.toFixed(3)} / ${weight}</td>
                         <td>${dailyNeed}</td>
-                     </tr>
+                    </tr>
                 `;
             });
 
             if (topPerformer) {
                 const winnerBanner = document.getElementById('winnerBanner');
                 const winnerText = document.getElementById('winnerText');
-                winnerText.innerHTML = `🏆 Today's Champion: ${topPerformer} with ${maxScore.toFixed(2)} points! 🏆`;
-                winnerBanner.style.display = 'flex';
-                createConfetti();
+                if (winnerBanner && winnerText) {
+                    winnerText.innerHTML = `🏆 Today's Champion: ${topPerformer} with ${maxScore.toFixed(2)} points! 🏆`;
+                    winnerBanner.style.display = 'flex';
+                    createConfetti();
+                }
             }
 
-            document.getElementById('kpiGrid').innerHTML = kpiGridHtml;
-            document.getElementById('tableBody').innerHTML = tableRows;
+            const kpiGrid = document.getElementById('kpiGrid');
+            const tableBody = document.getElementById('tableBody');
+            const overallPerf = document.getElementById('overallPerf');
+            const totalScoreEl = document.getElementById('totalScore');
+            const onTrackCountEl = document.getElementById('onTrackCount');
+            const behindCountEl = document.getElementById('behindCount');
+            const priorityKPIEl = document.getElementById('priorityKPI');
+            const priorityDetailEl = document.getElementById('priorityDetail');
             
-            document.getElementById('overallPerf').innerHTML = totalScore.toFixed(1) + '%';
-            document.getElementById('totalScore').innerHTML = totalScore.toFixed(1);
-            document.getElementById('onTrackCount').innerHTML = `${onTrackCount}/9`;
-            document.getElementById('behindCount').innerHTML = behindCount;
+            if (kpiGrid) kpiGrid.innerHTML = kpiGridHtml;
+            if (tableBody) tableBody.innerHTML = tableRows;
+            if (overallPerf) overallPerf.innerHTML = totalScore.toFixed(1) + '%';
+            if (totalScoreEl) totalScoreEl.innerHTML = totalScore.toFixed(1);
+            if (onTrackCountEl) onTrackCountEl.innerHTML = `${onTrackCount}/9`;
+            if (behindCountEl) behindCountEl.innerHTML = behindCount;
             
             if (priorityKPI) {
-                document.getElementById('priorityKPI').innerHTML = priorityKPI;
-                document.getElementById('priorityDetail').innerHTML = `needs ${priorityGap.toFixed(2)}% improvement`;
+                if (priorityKPIEl) priorityKPIEl.innerHTML = priorityKPI;
+                if (priorityDetailEl) priorityDetailEl.innerHTML = `needs ${priorityGap.toFixed(2)}% improvement`;
             } else {
-                document.getElementById('priorityKPI').innerHTML = 'All Good!';
-                document.getElementById('priorityDetail').innerHTML = 'no gaps detected';
+                if (priorityKPIEl) priorityKPIEl.innerHTML = 'All Good!';
+                if (priorityDetailEl) priorityDetailEl.innerHTML = 'no gaps detected';
             }
             
             setTimeout(addCardClickListeners, 100);
@@ -1454,8 +1480,8 @@
 
         window.onload = function() {
             loadSettings();
-            const savedUrl = document.getElementById('sheetUrl').value;
-            if (savedUrl) {
+            const savedUrl = document.getElementById('sheetUrl');
+            if (savedUrl && savedUrl.value) {
                 loadSheetData();
             } else {
                 useSampleData();
