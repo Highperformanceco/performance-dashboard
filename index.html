@@ -980,7 +980,7 @@
 
         <div class="table-container">
             <h3>📋 Detailed Analysis</h3>
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
                         <th>KPI</th>
@@ -991,8 +991,7 @@
                         <th>Status</th>
                         <th>Score</th>
                         <th>Daily Need</th>
-                    </tr>
-                </thead>
+                    </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -1411,16 +1410,20 @@
                 `;
 
                 const rowClass = kpi === 'ZTP' && !isGood ? 'ztp-row' : (kpi === 'AHT' && !isGood ? 'aht-row' : '');
+                
+                // FIXED: Format score with 2 decimal places (4-figure number like 14.57)
+                const scoreDisplay = score.toFixed(2);
+                
                 tableRows += `
                     <tr class="${rowClass}">
-                        <td><strong>${kpi}</strong></td>
-                        <td>${actual}${config.unit}</td>
-                        <td>${targetDisplay}</td>
-                        <td>${weight}%</td>
-                        <td class="gap ${gapClass}">${gapDisplay}</td>
-                        <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span></td>
-                        <td class="score-highlight">${score.toFixed(3)} / ${weight}</td>
-                        <td>${dailyNeed}</td>
+                        <td><strong>${kpi}</strong> \n
+                        <td>${actual}${config.unit} \n
+                        <td>${targetDisplay} \n
+                        <td>${weight}% \n
+                        <td class="gap ${gapClass}">${gapDisplay} \n
+                        <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span> \n
+                        <td class="score-highlight">${scoreDisplay} / ${weight} \n
+                        <td>${dailyNeed} \n
                     </tr>
                 `;
             });
@@ -1446,8 +1449,8 @@
             
             if (kpiGrid) kpiGrid.innerHTML = kpiGridHtml;
             if (tableBody) tableBody.innerHTML = tableRows;
-            if (overallPerf) overallPerf.innerHTML = totalScore.toFixed(1) + '%';
-            if (totalScoreEl) totalScoreEl.innerHTML = totalScore.toFixed(1);
+            if (overallPerf) overallPerf.innerHTML = totalScore.toFixed(2) + '%';
+            if (totalScoreEl) totalScoreEl.innerHTML = totalScore.toFixed(2);
             if (onTrackCountEl) onTrackCountEl.innerHTML = `${onTrackCount}/9`;
             if (behindCountEl) behindCountEl.innerHTML = behindCount;
             
