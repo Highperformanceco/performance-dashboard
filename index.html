@@ -991,7 +991,8 @@
                         <th>Status</th>
                         <th>Score</th>
                         <th>Daily Need</th>
-                    </thead>
+                    </tr>
+                </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -1146,54 +1147,45 @@
             }
         }
 
+        // ========== UPDATED: Simple Percentage Score Calculation ==========
         function calculateScore(kpi, actual) {
+            // Get target values for each KPI
+            let target;
             switch(kpi) {
-                case 'AHT':
-                    if (actual <= 240) return 15;
-                    if (actual <= 250) return ((250 - actual) / (250 - 240)) * 5 + 10;
-                    if (actual <= 260) return ((260 - actual) / (260 - 250)) * 5 + 5;
-                    return 0;
-                case 'IC':
-                    if (actual >= 98) return 10;
-                    if (actual >= 96) return ((actual - 96) / (98 - 96)) * 3 + 7;
-                    if (actual >= 95) return ((actual - 95) / (96 - 95)) * 2 + 5;
-                    return 0;
-                case 'FCR':
-                    if (actual >= 90) return 10;
-                    if (actual >= 89) return ((actual - 89) / (90 - 89)) * 5 + 5;
-                    if (actual >= 88) return ((actual - 88) / (89 - 88)) * 3;
-                    return 0;
-                case 'QA':
-                    if (actual >= 90) return 10;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
-                    if (actual >= 80) return ((actual - 80) / (85 - 80)) * 2.5;
-                    return 0;
-                case 'Gauge':
-                    if (actual >= 95) return 5;
-                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
-                    return 0;
-                case 'RSAT':
-                    if (actual >= 83) return 25;
-                    if (actual >= 81) return ((actual - 81) / (83 - 81)) * 10 + 15;
-                    if (actual >= 79) return ((actual - 79) / (81 - 79)) * 5 + 10;
-                    return 0;
-                case 'Cancellation':
-                    if (actual >= 90) return 10;
-                    if (actual >= 80) return ((actual - 80) / (90 - 80)) * 5 + 5;
-                    if (actual >= 75) return ((actual - 75) / (80 - 75)) * 3;
-                    return 0;
-                case 'MU':
-                    if (actual >= 95) return 10;
-                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5 + 5;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 3;
-                    return actual;
-                case 'ZTP':
-                    return actual === 0 ? 5 : 0;
-                default:
-                    return 0;
+                case 'AHT': target = 240; break;
+                case 'IC': target = 98; break;
+                case 'QA': target = 90; break;
+                case 'Gauge': target = 95; break;
+                case 'RSAT': target = 83; break;
+                case 'FCR': target = 90; break;
+                case 'Cancellation': target = 90; break;
+                case 'MU': target = 95; break;
+                case 'ZTP': target = 0; break;
+                default: return 0;
             }
+            
+            const weight = KPI_CONFIG[kpi].weight;
+            
+            // ZTP special case: must be exactly 0
+            if (kpi === 'ZTP') {
+                return actual === 0 ? weight : 0;
+            }
+            
+            // AHT: lower is better, so calculate as target/actual
+            if (kpi === 'AHT') {
+                if (actual <= target) return weight;
+                const percentage = (target / actual) * 100;
+                return (percentage / 100) * weight;
+            }
+            
+            // All other KPIs: higher is better
+            const percentageOfTarget = (actual / target) * 100;
+            const score = (percentageOfTarget / 100) * weight;
+            
+            // Cap at weight (cannot exceed)
+            return Math.min(score, weight);
         }
+        // ========== END OF UPDATED SCORE CALCULATION ==========
 
         function startAutoScroll() {
             if (autoScrollInterval) clearInterval(autoScrollInterval);
@@ -1411,7 +1403,6 @@
 
                 const rowClass = kpi === 'ZTP' && !isGood ? 'ztp-row' : (kpi === 'AHT' && !isGood ? 'aht-row' : '');
                 
-                // FIXED: Format score with 2 decimal places (4-figure number like 14.57)
                 const scoreDisplay = score.toFixed(2);
                 
                 tableRows += `
