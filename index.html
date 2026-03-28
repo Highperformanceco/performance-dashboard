@@ -129,7 +129,6 @@
             100% { opacity: 1; }
         }
 
-        /* ========== BREATHING ANIMATIONS - REMOVED FROM CARDS ========== */
         @keyframes gentleBreathe {
             0% {
                 transform: scale(1);
@@ -991,7 +990,8 @@
                         <th>Status</th>
                         <th>Score</th>
                         <th>Daily Need</th>
-                    </thead>
+                    </tr>
+                </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -1020,16 +1020,17 @@
 
         const KPI_NAMES = ['AHT', 'IC', 'QA', 'Gauge', 'RSAT', 'FCR', 'Cancellation', 'MU', 'ZTP'];
         
+        // UPDATED: Sample data matching your original table
         const SAMPLE_DATA = {
             AHT: 227,
-            IC: 97.53,
-            QA: 90.26,
-            Gauge: 97.67,
-            RSAT: 81.5,
-            FCR: 87.48,
-            Cancellation: 92.85,
-            MU: 94.33,
-            ZTP: 1
+            IC: 97.85,
+            QA: 90.38,
+            Gauge: 98.98,
+            RSAT: 81.48,
+            FCR: 87.5,
+            Cancellation: 90.01,
+            MU: 100,
+            ZTP: 2
         };
 
         let currentData = { ...SAMPLE_DATA };
@@ -1094,6 +1095,97 @@
             createConfetti();
         }
 
+        // ========== FIXED: UPDATED CALCULATE SCORE FUNCTION ==========
+        function calculateScore(kpi, actual) {
+            switch(kpi) {
+                case 'AHT':
+                    if (actual <= 240) return 15;
+                    if (actual <= 250) return 15 - ((actual - 240) / 10) * 5;
+                    if (actual <= 260) return 10 - ((actual - 250) / 10) * 5;
+                    return 0;
+                    
+                case 'IC':
+                    if (actual >= 98) return 10;
+                    if (actual >= 97) return 9 + ((actual - 97) / 1) * 1;
+                    if (actual >= 96) return 7 + ((actual - 96) / 1) * 2;
+                    if (actual >= 95) return 5 + ((actual - 95) / 1) * 2;
+                    return 0;
+                    
+                case 'QA':
+                    if (actual >= 90) return 10;
+                    if (actual >= 89) return 9;
+                    if (actual >= 88) return 8;
+                    if (actual >= 87) return 7;
+                    if (actual >= 86) return 6;
+                    if (actual >= 85) return 5;
+                    if (actual >= 84) return 5;
+                    if (actual >= 83) return 4;
+                    if (actual >= 82) return 4;
+                    if (actual >= 81) return 3;
+                    if (actual >= 80) return 3;
+                    return 0;
+                    
+                case 'Gauge':
+                    if (actual >= 95) return 5;
+                    if (actual >= 90) return 5 - ((95 - actual) / 5) * 2;
+                    if (actual >= 85) return 3 - ((90 - actual) / 5) * 1;
+                    return 0;
+                    
+                case 'RSAT':
+                    if (actual >= 83) return 25;
+                    if (actual >= 82) return 20;
+                    if (actual >= 81) return 15;
+                    if (actual >= 80) return 13;
+                    if (actual >= 79) return 10;
+                    return 0;
+                    
+                case 'FCR':
+                    if (actual >= 90) return 10;
+                    if (actual >= 89) return 5;
+                    if (actual >= 88) return 3;
+                    return 0;
+                    
+                case 'Cancellation':
+                    if (actual >= 90) return 10;
+                    if (actual >= 89) return 10;
+                    if (actual >= 88) return 9;
+                    if (actual >= 87) return 9;
+                    if (actual >= 86) return 8;
+                    if (actual >= 85) return 8;
+                    if (actual >= 84) return 7;
+                    if (actual >= 83) return 7;
+                    if (actual >= 82) return 6;
+                    if (actual >= 81) return 6;
+                    if (actual >= 80) return 5;
+                    if (actual >= 79) return 5;
+                    if (actual >= 78) return 4;
+                    if (actual >= 77) return 4;
+                    if (actual >= 76) return 3;
+                    if (actual >= 75) return 3;
+                    return 0;
+                    
+                case 'MU':
+                    if (actual >= 95) return 10;
+                    if (actual >= 94) return 9;
+                    if (actual >= 93) return 8;
+                    if (actual >= 92) return 7;
+                    if (actual >= 91) return 6;
+                    if (actual >= 90) return 5;
+                    if (actual >= 89) return 5;
+                    if (actual >= 88) return 4;
+                    if (actual >= 87) return 4;
+                    if (actual >= 86) return 3;
+                    if (actual >= 85) return 3;
+                    return 0;
+                    
+                case 'ZTP':
+                    return actual === 0 ? 5 : 0;
+                    
+                default:
+                    return 0;
+            }
+        }
+
         async function loadSheetData() {
             const sheetUrlInput = document.getElementById('sheetUrl');
             const sheetUrl = sheetUrlInput ? sheetUrlInput.value : '';
@@ -1143,55 +1235,6 @@
                 if (lastUpdated) lastUpdated.innerHTML = '❌ Error loading data';
                 showError(`Error: ${error.message}. Using sample data.`);
                 useSampleData();
-            }
-        }
-
-        function calculateScore(kpi, actual) {
-            switch(kpi) {
-                case 'AHT':
-                    if (actual <= 240) return 15;
-                    if (actual <= 250) return ((250 - actual) / (250 - 240)) * 5 + 10;
-                    if (actual <= 260) return ((260 - actual) / (260 - 250)) * 5 + 5;
-                    return 0;
-                case 'IC':
-                    if (actual >= 98) return 10;
-                    if (actual >= 96) return ((actual - 96) / (98 - 96)) * 3 + 7;
-                    if (actual >= 95) return ((actual - 95) / (96 - 95)) * 2 + 5;
-                    return 0;
-                case 'FCR':
-                    if (actual >= 90) return 10;
-                    if (actual >= 89) return ((actual - 89) / (90 - 89)) * 5 + 5;
-                    if (actual >= 88) return ((actual - 88) / (89 - 88)) * 3;
-                    return 0;
-                case 'QA':
-                    if (actual >= 90) return 10;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
-                    if (actual >= 80) return ((actual - 80) / (85 - 80)) * 2.5;
-                    return 0;
-                case 'Gauge':
-                    if (actual >= 95) return 5;
-                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 5 + 5;
-                    return 0;
-                case 'RSAT':
-                    if (actual >= 83) return 25;
-                    if (actual >= 81) return ((actual - 81) / (83 - 81)) * 10 + 15;
-                    if (actual >= 79) return ((actual - 79) / (81 - 79)) * 5 + 10;
-                    return 0;
-                case 'Cancellation':
-                    if (actual >= 90) return 10;
-                    if (actual >= 80) return ((actual - 80) / (90 - 80)) * 5 + 5;
-                    if (actual >= 75) return ((actual - 75) / (80 - 75)) * 3;
-                    return 0;
-                case 'MU':
-                    if (actual >= 95) return 10;
-                    if (actual >= 90) return ((actual - 90) / (95 - 90)) * 5 + 5;
-                    if (actual >= 85) return ((actual - 85) / (90 - 85)) * 3;
-                    return actual;
-                case 'ZTP':
-                    return actual === 0 ? 5 : 0;
-                default:
-                    return 0;
             }
         }
 
@@ -1411,24 +1454,24 @@
 
                 const rowClass = kpi === 'ZTP' && !isGood ? 'ztp-row' : (kpi === 'AHT' && !isGood ? 'aht-row' : '');
                 
-                // FIXED: Format score with 2 decimal places (4-figure number like 14.57)
+                // Format score with 2 decimal places
                 const scoreDisplay = score.toFixed(2);
                 
                 tableRows += `
                     <tr class="${rowClass}">
-                        <td><strong>${kpi}</strong> \n
-                        <td>${actual}${config.unit} \n
-                        <td>${targetDisplay} \n
-                        <td>${weight}% \n
-                        <td class="gap ${gapClass}">${gapDisplay} \n
-                        <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span> \n
-                        <td class="score-highlight">${scoreDisplay} / ${weight} \n
-                        <td>${dailyNeed} \n
+                        <td><strong>${kpi}</strong></td>
+                        <td>${actual}${config.unit}</td>
+                        <td>${targetDisplay}</td>
+                        <td>${weight}%</td>
+                        <td class="gap ${gapClass}">${gapDisplay}</td>
+                        <td><span class="status ${statusClass}" style="display: inline-block; padding: 3px 10px;">${status}</span></td>
+                        <td class="score-highlight">${scoreDisplay} / ${weight}</td>
+                        <td>${dailyNeed}</td>
                     </tr>
                 `;
             });
 
-            if (topPerformer) {
+            if (topPerformer && maxScore > 0) {
                 const winnerBanner = document.getElementById('winnerBanner');
                 const winnerText = document.getElementById('winnerText');
                 if (winnerBanner && winnerText) {
